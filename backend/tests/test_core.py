@@ -125,6 +125,47 @@ class CoreTests(unittest.TestCase):
                 db.execute('WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM n WHERE x<100000000) SELECT sum(x) FROM n').fetchone()
         self.assertTrue(started,'The deadline must interrupt running work, not only reject it beforehand.')
 
+    def test_empty_result_keeps_complete_source_journeys(self):
+        from tracequery.engine import execute_plan
+        plan={**self.plan,'where':'"e"."grade" > 100'}
+        result=execute_plan(self.path,plan)
+        self.assertEqual(result['status'],'complete')
+        self.assertEqual(result['result']['rows'],[])
+        self.assertEqual(result['result']['count'],0)
+        self.assertEqual([stage['count'] for stage in result['stages']],[3,4,0])
+        self.assertEqual(len(result['excluded']),4)
+        self.assertEqual({row['reason'] for row in result['excluded']},{'FALSE','UNKNOWN'})
+        self.assertTrue(all(outcome['contributions']==0 for outcome in result['outcomes']))
+        ali=next(o for o in result['outcomes'] if o['alias']=='s' and o['id']==1)
+        mehmet=next(o for o in result['outcomes'] if o['alias']=='s' and o['id']==3)
+        self.assertEqual(ali['first_missing_stage'],2)
+        self.assertEqual(mehmet['first_missing_stage'],1)
+
+    def test_table_without_identity_is_browsable_but_cannot_be_explained(self):
+        from tracequery.engine import execute_plan, read_table, QueryError
+        db=sqlite3.connect(self.path)
+        try:
+            db.executescript("CREATE TABLE no_key(value TEXT); INSERT INTO no_key VALUES('visible');")
+        finally:
+            db.close()
+        self.assertEqual(read_table(self.path,'no_key')['rows'],[['visible']])
+        plan={'tables':[('no_key','n')],'joins':[],'projections':['n.value'],'where':None,'sql':'demo'}
+        with self.assertRaisesRegex(QueryError,'PRIMARY KEY'):
+            execute_plan(self.path,plan)
+
+    def test_join_growth_hits_intermediate_limit_even_when_sources_fit(self):
+        from tracequery.engine import execute_plan, QueryError
+        db=sqlite3.connect(self.path)
+        try:
+            db.execute("UPDATE students SET name='Same'")
+            db.commit()
+        finally:
+            db.close()
+        plan={'tables':[('students','a'),('students','b')],
+              'joins':['a.name=b.name'],'projections':['a.id','b.id'],'where':None,'sql':'demo'}
+        with self.assertRaisesRegex(QueryError,'Ara sonuç'):
+            execute_plan(self.path,plan,max_rows=3)
+
     def test_case_insensitive_sqlite_table_names(self):
         from tracequery.engine import execute_plan
         p={**self.plan,'tables':[('STUDENTS','s'),('ENROLLMENTS','e')]}

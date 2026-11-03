@@ -6,16 +6,16 @@
 
 | Kontrol | Sonuç |
 |---|---|
-| Gerçek SQLite çekirdek unittest suite | 25 başarılı |
+| Gerçek SQLite çekirdek unittest suite | 28 başarılı |
 | Gerçek SQLite ile asenkron bağlantı-kopması suite | 2 başarılı |
-| Yerelde mevcut sağlam pytest ile tüm test keşfi | 27 başarılı, 2 modül atlandı |
+| Yerelde mevcut sağlam pytest ile tüm test keşfi | 30 başarılı, 2 modül atlandı |
 | Python compileall | Başarılı |
 | git diff --check | Başarılı |
 | scripts/verify.sh | Başarısız: FastAPI kurulu değil |
 | npm run build | Başarısız: tsc kurulu değil |
 | Playwright | 4 senaryo hazır; çalıştırılmadı |
 
-Atlananlar iki test vakası değil, SQLGlot ve FastAPI gerektiren iki test modülüdür. Dolayısıyla 27 başarılı test, parser veya HTTP katmanı hakkında başarı kanıtı sayılmaz. TypeScript/Vite derlemesi ve React ekranları da doğrulanmadı.
+Atlananlar iki test vakası değil, SQLGlot ve FastAPI gerektiren iki test modülüdür. Dolayısıyla 30 başarılı test, parser veya HTTP katmanı hakkında başarı kanıtı sayılmaz. TypeScript/Vite derlemesi ve React ekranları da doğrulanmadı.
 
 Standart kütüphane kontrolleri:
 
@@ -41,9 +41,9 @@ Test adları `backend/tests/test_core.py` içinde; iptal orkestrasyonu `backend/
 | AC-08 NULL ayrımı | Notu NULL kaydında UNKNOWN, 45 kaydında FALSE | Parser ve arayüz |
 | AC-09 Sonraki JOIN kaybı | `test_later_join_keeps_a_surviving_branch_and_explains_the_lost_one`: 102 kaydı JOIN 2'de kaybolur | API/tarayıcı |
 | AC-10 Kısmi katılım | Aynı testte Ali'nin bir sonucu kalır; kayıp dal ayrı saklanır | Tarayıcı yolculuk görünümü |
-| AC-11 Boş sonuç | Parser/API/browser testleri yazılı | Bu katmanlar çalıştırılmadı |
-| AC-12 Kimlik uydurulmaz | Nullable/tekrarlı veya JS güvenli aralığı dışı anahtar reddi; generated sütun testi | Eksik anahtar parser/API testi ve UI uyarısı |
-| AC-13 İptal/sınır başarısızlığı | Kaynak/ara satır sınırı, önceden iptal, çalışan SQLite iptali, çalışan sorguda süre sınırı, gerçek worker temizliği | Tarayıcıdan HTTP kopmasıyla bütün hat |
+| AC-11 Boş sonuç | `test_empty_result_keeps_complete_source_journeys`: tamamlanan sıfır sonuçta JOIN/WHERE elenme izleri korunur | Parser/API/tarayıcı |
+| AC-12 Kimlik uydurulmaz | Anahtarsız tablo okunur, açıklama reddedilir; nullable/tekrarlı/JS aralığı dışı anahtar reddi; generated sütun testi | Parser/API ve UI uyarısı |
+| AC-13 İptal/sınır başarısızlığı | Kaynak sınırı ve küçük kaynaklardan 9 birleşime büyüyen JOIN sınırı, önceden iptal, çalışan SQLite iptali, çalışan sorguda süre sınırı, gerçek worker temizliği | Tarayıcıdan HTTP kopmasıyla bütün hat |
 | AC-14 Mantıksal açıklama | Motor uyarısı ve UI metni mevcut | Gerçek ekran kontrolü |
 
 ## Ek çekirdek kanıtları

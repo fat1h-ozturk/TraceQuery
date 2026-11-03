@@ -59,7 +59,7 @@ Bu yerel uygulamayı genel internete açmayın: kimlik doğrulama, çok kullanı
 
 ## Bu ortamda yapılan kontroller
 
-İlk geliştirme sırasında dış paket indirme ağı erişilemedi. Standart kütüphane çekirdek testlerinin **27'si geçti**; mevcut yerel pytest ile de **27 geçti, 2 modül atlandı** (SQLGlot ve FastAPI eksik). Python sözdizimi kontrolü başarılı. API/parser entegrasyonu, TypeScript derlemesi ve gerçek tarayıcı akışı **henüz doğrulanmadı**. Bu sınır, uygulamanın uçtan uca çalıştığı iddiasında bulunulmadığı anlamına gelir.
+İlk geliştirme sırasında dış paket indirme ağı erişilemedi. Standart kütüphane çekirdek testlerinin **30'u geçti**; mevcut yerel pytest ile de **30 geçti, 2 modül atlandı** (SQLGlot ve FastAPI eksik). Python sözdizimi kontrolü başarılı. API/parser entegrasyonu, TypeScript derlemesi ve gerçek tarayıcı akışı **henüz doğrulanmadı**. Bu sınır, uygulamanın uçtan uca çalıştığı iddiasında bulunulmadığı anlamına gelir.
 
 ## Tarayıcı doğrulaması
 

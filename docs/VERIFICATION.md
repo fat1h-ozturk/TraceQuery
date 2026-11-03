@@ -67,3 +67,11 @@ Tarayıcı iptal senaryosu isteği gönderilmeden bekletip iptal eder. Çalışa
 TestClient'ın httpx için verdiği deprecation uyarısı kalıyor; testlerde hata veya atlama yok. Önceki kısıtlı ortamda thread uyanması kaybolduğu için test event loop'larında küçük bir zamanlayıcı kullanılır; ürün akışı ve gerçek HTTP/SQLite çalışması değiştirilmez. Kullanıcının izin değişikliği sonrası yerel sunucu ve Chromium burada çalıştırılabildi.
 
 Kullanıcı araştırması yapılmadı ve eğitim başarısında ölçülmüş bir artış iddia edilmiyor. Doğal dil → SQL, UC-08 karşılaştırma ve UC-09 rapor dışa aktarma uygulanmadı; bunlar ilk çekirdek sürümün dışında kalan sonraki çalışmalardır.
+
+## Sıcak koyu tema doğrulaması
+
+Referans görsellere göre kömür/krem/şeftali paleti, serif başlıklar, ince kenarlıklar, oval düğmeler ve kâğıt görünümlü kaynak paneli uygulandı. SQL ve kaynak bilgileri için ayrı okunabilir metin stilleri korunur.
+
+- Instrument Serif, lisansıyla birlikte yerel asset olarak sunulur. Gerçek Chromium kontrolünde font yüklendi ve zemin beklenen `rgb(27, 25, 22)` değerini verdi.
+- 1440×1000 masaüstü ve 390×844 mobil görünümde yatay sayfa taşması yok; iki tam sayfa ekran görüntüsü görsel olarak incelendi. Görüntüler `.artifacts/theme/` içindedir.
+- Tema sonrası tam `./scripts/verify.sh` koşusu: 58 backend testi, TypeScript/Vite derlemesi ve 8 Chromium senaryosu başarılı.

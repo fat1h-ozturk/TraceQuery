@@ -96,3 +96,7 @@ Bir kaydın dalları farklı sonuçlanabilir: örneğin Ali'nin bir ders kaydı 
 Her tamamlanan açıklama benzersiz bir oturum kimliği ve kullanılan SQL'i taşır. Düzenleyicideki metin sonradan değiştirilse bile “Son çalıştırılan sorgu” bölümünde mevcut sonuçları üreten SQL görüntülenir. Yeni koşu başarısız olursa önceki başarılı açıklama korunur.
 
 Dosya yüklenince örnek sorgu, dosyadaki açıklanabilir bir tablodan otomatik seçilir; tablo adındaki boşluklar güvenle alıntılanır. Uygun INTEGER PRIMARY KEY yoksa dosya görüntülenebilir; açıklama sınırlaması gösterilir ve geçersiz örnek sorgu önerilmez.
+
+## Görsel tema
+
+Arayüz sıcak kömür zemin, krem metin, şeftali vurgular ve açık renkli kaynak panelleri kullanır. Başlıklardaki Instrument Serif projeyle birlikte sunulur; dış font servisine istek yapılmaz. Fontun SIL Open Font License dosyası `frontend/public/fonts/OFL.txt` içindedir.

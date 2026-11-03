@@ -19,7 +19,7 @@ Yazma girişimi; NULL karşılaştırmaları; tekrar değerler; self JOIN takma 
 Files: backend/tracequery/engine.py, app.py; backend/tests/test_tracequery.py.
 Interface: inspect_database(path), explain(path, sql); POST /api/demo, /api/databases, /api/explain; GET /api/schema/{id}, /api/table/{id}/{table}.
 - [ ] Gerçek SQLite fixture ile kaynak kimliği, JOIN, filtre, NULL, tekrar, sınır ve yazma reddi testlerini yaz; RED çalıştır.
-- [ ] Motor ve API'yi uygula; pytest tamamını çalıştır.
+- [x] Motor ve API'yi uygula; pytest tamamını çalıştır.
 
 ## Task 2: Arayüz
 Files: frontend/src/App.tsx, style.css, main.tsx; package.json, vite.config.ts.
@@ -28,7 +28,7 @@ Files: frontend/src/App.tsx, style.css, main.tsx; package.json, vite.config.ts.
 
 ## Task 3: Teslim
 Files: README.md, .gitignore, scripts/dev.sh.
-- [ ] Çalıştırma yönergesi ve destek sınırlarını yaz.
+- [x] Çalıştırma yönergesi ve destek sınırlarını yaz.
 - [ ] Bağımsız kod incelemesi ve gerekli düzeltmeler; son pytest/build.
 
 ## Decisions / Progress
@@ -89,3 +89,8 @@ Files: README.md, .gitignore, scripts/dev.sh.
 - Yerel TCP ve Computer Use erişimi bu ortamda kısıtlı; kullanıcı normal terminalinde verify.sh/start.sh çalıştırabilir.
 
 - Doğrulama komutu 54 backend testi ve build aşamasını geçti; gerçek browser sunucusunun TCP bind engelini loga kaydedip başarısız döndü. Playwright yapılandırması kullanıcıdaki start.sh ile aynı üretim derlemesini tek porttan test eder; Vite geliştirme sunucusuna ihtiyaç yok.
+
+### UI istek çakışması
+- Chromium kurulumu tamamlanmış; normal terminalde verify koşusu henüz loga yansımadı. Bu oturumda TCP dinleme ve browser host engeli sürüyor.
+- Sorgu sırasında kaynak tablo sekmesinin ikinci ağ işlemi başlatabilmesi düzeltildi. Ortak ref aynı anda tek işlem kabul eder; iptal denetleyicisi yalnız kabul edilen sorguda oluşturulur.
+- Bekleyen HTTP isteğinin iptalinden sonra son başarılı sonuç/SQL'in korunması ve tablo sekmesinin kilitlenmesi için altıncı Playwright senaryosu eklendi. Build ve test keşfi geçti; gerçek tarayıcı doğrulaması bekliyor.

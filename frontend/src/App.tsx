@@ -25,18 +25,25 @@ export default function App(){
  const [table,setTable]=useState(''),[page,setPage]=useState<Page|null>(null),[focus,setFocus]=useState<Outcome|null>(null);
  const file=useRef<HTMLInputElement>(null);
  const queryController=useRef<AbortController|null>(null);
- async function action(fn:()=>Promise<void>){setError('');setBusy(true);try{await fn()}catch(e){setError(e instanceof DOMException&&e.name==='AbortError'?'İşlem iptal edildi. Önceki başarılı sonuçlar korundu.':e instanceof Error?e.message:'İşlem tamamlanamadı.')}finally{setBusy(false)}}
+ const actionPending=useRef(false);
+ async function action(fn:()=>Promise<void>){
+  if(actionPending.current)return;
+  actionPending.current=true;
+  setError('');setBusy(true);
+  try{await fn()}catch(e){setError(e instanceof DOMException&&e.name==='AbortError'?'İşlem iptal edildi. Önceki başarılı sonuçlar korundu.':e instanceof Error?e.message:'İşlem tamamlanamadı.')}
+  finally{actionPending.current=false;setBusy(false)}
+ }
  function opened(next:Database){setDb(next);setSql(next.demo_sql);setAnalysis(null);setPage(null);setTable('');setSelected(-1);setFocus(null);setTab('sonuc')}
  async function runQuery(){
-  if(!db||busy)return;
-  const controller=new AbortController();
-  queryController.current=controller;
-  try {
-   await action(async()=>{
+  if(!db)return;
+  await action(async()=>{
+   const controller=new AbortController();
+   queryController.current=controller;
+   try {
     const result=await api<Explanation>('/explain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({database_id:db.id,sql}),signal:controller.signal});
     setAnalysis(result);setStage(-1);setSelected(-1);setFocus(null);setTab('sonuc');
-   });
-  } finally {queryController.current=null;}
+   } finally {queryController.current=null;}
+  });
  }
  async function browse(name:string,offset=0){await action(async()=>{const next=await api<Page>(`/table/${db!.id}/${encodeURIComponent(name)}?offset=${offset}`);setTable(name);setPage(next);setTab('tablo')})}
  const grid=analysis?(stage<0?analysis.result:analysis.stages[stage]):null;
@@ -62,7 +69,7 @@ export default function App(){
    </section>
    {db&&!db.demo_sql&&<p className="footnote">Bu veritabanında açıklama için uygun INTEGER PRIMARY KEY bulunamadı. Kaynak tabloları ve şemalarını inceleyebilirsin.</p>}
    {!db&&<section className="welcome panel"><span>01 / BAŞLANGIÇ</span><h2>Bir sonuçtan daha fazlasını gör.</h2><p>Ali neden iki kez görünüyor? Ayşe hangi koşulda elendi?<br/>Örnek veritabanını açarak kayıtların yolculuğuna başla.</p><button className="primary" disabled={busy} onClick={()=>void action(async()=>opened(await api<Database>('/demo',{method:'POST'})))}>Örnek veritabanıyla başla ↗</button></section>}
-   {db&&<div className="tabs"><button className={tab==='sonuc'?'current':''} onClick={()=>setTab('sonuc')}>Sorgu inceleme {analysis&&<span>{analysis.result.count}</span>}</button><button className={tab==='tablo'?'current':''} onClick={()=>{if(table)setTab('tablo');else if(db.tables[0])void browse(db.tables[0].name)}}>Kaynak tablolar</button></div>}
+   {db&&<div className="tabs"><button className={tab==='sonuc'?'current':''} onClick={()=>setTab('sonuc')}>Sorgu inceleme {analysis&&<span>{analysis.result.count}</span>}</button><button disabled={busy} className={tab==='tablo'?'current':''} onClick={()=>{if(table)setTab('tablo');else if(db.tables[0])void browse(db.tables[0].name)}}>Kaynak tablolar</button></div>}
    {db&&tab==='tablo'&&page&&<section className="panel"><div className="panel-heading"><strong>{table}</strong><span className="muted">Sayfa başlangıcı: {page.offset}</span></div>{db.tables.find(t=>t.name===table)&&<SchemaDetails table={db.tables.find(t=>t.name===table)!}/>}<div className="table-scroll"><table><thead><tr>{page.columns.map((c,i)=><th key={i}>{c}</th>)}</tr></thead><tbody>{page.rows.map((r,i)=><tr key={i}>{r.map((v,j)=><td key={j}>{show(v)}</td>)}</tr>)}</tbody></table></div><div className="pagination"><button disabled={busy||page.offset===0} onClick={()=>void browse(table,Math.max(0,page.offset-100))}>← Önceki</button><span>{page.rows.length} kayıt gösteriliyor</span><button disabled={busy||!page.has_more} onClick={()=>void browse(table,page.offset+100)}>Sonraki →</button></div></section>}
    {db&&tab==='sonuc'&&!analysis&&<div className="empty panel">Sorguyu çalıştırdığında sonuçlar ve açıklama aşamaları burada görünecek.</div>}
    {tab==='sonuc'&&analysis&&grid&&<>

@@ -13,7 +13,7 @@
 | git diff --check | Başarılı |
 | scripts/verify.sh | 54 backend testi ve build geçti; Playwright sunucusu TCP dinleme engelinde durdu; hata kodu/log korundu |
 | npm run build | TypeScript kontrolü ve Vite üretim derlemesi başarılı |
-| Playwright | 5 senaryo listelendi/derlendi; gerçek tarayıcıda çalıştırılmadı |
+| Playwright | 6 senaryo listelendi/derlendi; gerçek tarayıcıda çalıştırılmadı |
 
 Önceki paket engeli kullanıcı terminalinde kurulumla kalktı. SQLGlot 29.0.1 ve FastAPI 0.162.0 ile gerçek ayrıştırıcı/HTTP testleri artık çalışıyor. Arayüzün tip kontrolü ve derlemesi geçse de ekran görünümü ve kullanıcı etkileşimleri Chromium ile henüz doğrulanmadı. TestClient'ın httpx için verdiği deprecation uyarısı testleri başarısız kılmıyor.
 
@@ -61,10 +61,16 @@ Paketler kuruldu. Kalan ortam kısıtı, bu oturumda TCP soketi oluşturmanın `
 
 TestClient portalının aynı ortamdaki thread uyanma sorunu, küçük bir gerçek Starlette uygulamasında üretildi. Asenkron testlerdeki gibi test loop'una periyodik uyanma eklenince gerçek TestClient + HTTP + SQLite akışı tamamlandı. Ürün koduna sahte istek veya sonuç eklenmedi; testler atlanmadı.
 
-Kullanıcının normal terminalinde Chromium kurulumu tamamlanınca proje kökünde `./scripts/verify.sh` çalıştırılmalı. Bu komut tüm backend testlerini, üretim derlemesini ve bu derlemeyi sunan gerçek API üzerinden beş Playwright senaryosunu koşar; çıktıyı `.artifacts/verification/latest.log` dosyasına yazar. Testler demo, kaynaklar, JOIN/WHERE kaybı, yazma reddi, şema, boş sonuç, eski SQL bağlamı ve gerçek SQLite dosya yüklemesini kapsar. Başarılı/başarısız ekran örnekleri `frontend/test-results/` içinde incelenebilir.
+Kullanıcının normal terminalinde Chromium kurulumu tamamlanınca proje kökünde `./scripts/verify.sh` çalıştırılmalı. Bu komut tüm backend testlerini, üretim derlemesini ve bu derlemeyi sunan gerçek API üzerinden altı Playwright senaryosunu koşar; çıktıyı `.artifacts/verification/latest.log` dosyasına yazar. Testler demo, kaynaklar, JOIN/WHERE kaybı, yazma reddi, şema, boş sonuç, eski SQL bağlamı ve gerçek SQLite dosya yüklemesini kapsar. Başarılı/başarısız ekran örnekleri `frontend/test-results/` içinde incelenebilir.
 
 Uygulama `./scripts/start.sh` ile tek yerel portta açılır. Script bağımlılıkları kontrol eder, arayüzü derler ve Uvicorn'a geçer. Bu ortamda bash sözdizimi, eksik bağımlılık mesajı, derleme ve Uvicorn startup doğrulandı; başarılı TCP dinlemesi burada kanıtlanmadı.
 
 Yeni kayıt regresyonları önce başarısız oldu: yüklenen dosyada yanlış öğrenci tablosu örneği ve anahtarsız tabloda geçersiz örnek önerisi. Düzeltme sonrası kendi dosyasından seçilen sorgu gerçek SQLGlot/SQLite ile geçti. Gerçek HTTP yükleme/kopya/temizlik ve 10 MB sınırı testleri de başarılı.
 
 Kullanıcı araştırması yapılmadı. UC-08 karşılaştırma ve UC-09 dışa aktarma, belgeye göre isteğe bağlıdır ve çekirdek tarayıcıda doğrulanmadan eklenmedi. Doğal dil desteği sonraki aşamadır.
+
+## İsteklerin çakışmasını önleme
+
+Arayüzde bütün ağ işlemleri aynı anda yalnız bir işlem kabul eden ref ile korunur. Sorgu sırasında kaynak tablo sekmesi de pasiftir. AbortController yalnız kabul edilen sorguya aittir; ikinci bir çağrı mevcut iptal bağlantısını silemez. Bu, eski veritabanının açıklamasının yeni bağlamla karışmasını önler.
+
+Ek tarayıcı senaryosu, ikinci açıklama isteğini gönderilmeden tutup iptal eder; eski sonuç/SQL'in korunmasını ve tablo gezintisinin engellenmesini kontrol eder. Bu test frontend iptalini sınar; çalışan SQLite worker'ının kesilmesi ayrı gerçek backend testleriyle doğrulanır. Altı tarayıcı senaryosu henüz çalıştırılmadı. Son arayüz build'i ve test keşfi başarılı.

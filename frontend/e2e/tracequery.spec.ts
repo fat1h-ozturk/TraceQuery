@@ -87,3 +87,31 @@ with sqlite3.connect(sys.argv[1]) as db:
  expect(readFileSync(databasePath).equals(original)).toBe(true);
  await page.screenshot({path:testInfo.outputPath('upload-provenance.png'),fullPage:true});
 });
+
+test('cancelling a pending query preserves its previous result and blocks table browsing',async({page})=>{
+ await page.getByRole('button',{name:'Çalıştır ve açıkla'}).click();
+ const table=page.getByRole('table',{name:'Sorgu sonucu'});
+ await expect(table.getByRole('row')).toHaveCount(3);
+ let release:()=>void=()=>{};
+ const heldRequest=new Promise<void>(resolve=>{release=resolve;});
+ await page.route('**/api/explain',async route=>{
+  await heldRequest;
+  // The browser may already have aborted this request after cancellation.
+  await route.continue().catch(()=>{});
+ });
+ try {
+  await page.getByLabel('SQL sorgusu',{exact:true}).fill('SELECT o.ad FROM ogrenciler o WHERE o.id > 100');
+  await page.getByRole('button',{name:'Çalıştır ve açıkla'}).click();
+  await expect(page.getByRole('button',{name:'İptal et',exact:true})).toBeVisible();
+  await expect(page.getByRole('button',{name:'Kaynak tablolar',exact:true})).toBeDisabled();
+  await page.getByRole('button',{name:'İptal et',exact:true}).click();
+  await expect(page.getByRole('alert')).toContainText('iptal edildi');
+  await expect(table.getByRole('row')).toHaveCount(3);
+  await expect(page.getByRole('button',{name:'Çalıştır ve açıkla'})).toBeEnabled();
+  await page.getByText('Son çalıştırılan sorgu',{exact:true}).click();
+  await expect(page.locator('.executed-query code')).toContainText('WHERE k.notu >= 60');
+ } finally {
+  release();
+  await page.unrouteAll({behavior:'wait'});
+ }
+});

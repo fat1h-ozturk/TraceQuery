@@ -62,7 +62,7 @@ Bu yerel uygulamayı genel internete açmayın: kimlik doğrulama, çok kullanı
 
 Kurulum sonrası **54 backend testi atlama olmadan geçti**: SQLite motoru, gerçek SQLGlot ayrıştırıcısı ve FastAPI TestClient akışı. TypeScript kontrolü ve Vite üretim derlemesi başarılı. Gerçek dosya yükleme, salt okunur kopya, geçersiz/büyük dosya reddi ve geçici dosyaların temizliği HTTP testlerinde kontrol edildi.
 
-Bu ajan oturumunda yerel TCP soketi açılması engelleniyor; tarayıcı testlerinin beş senaryosu henüz çalıştırılmadı. Gerçek ekran ve Chromium akışı doğrulanmadan uçtan uca tamamlanma iddiasında bulunulmuyor. Güncel kanıtlar [docs/VERIFICATION.md](docs/VERIFICATION.md) içinde.
+Bu ajan oturumunda yerel TCP soketi açılması engelleniyor; tarayıcı testlerinin altı senaryosu henüz çalıştırılmadı. Gerçek ekran ve Chromium akışı doğrulanmadan uçtan uca tamamlanma iddiasında bulunulmuyor. Güncel kanıtlar [docs/VERIFICATION.md](docs/VERIFICATION.md) içinde.
 
 ## Tarayıcı doğrulaması
 
@@ -75,7 +75,7 @@ cd ..
 ./scripts/verify.sh
 ```
 
-Playwright üretim derlemesini sunan backend sunucusunu başlatır; 8000 portu boş olmalı. Önceden `start.sh` ile açılan sunucuyu Ctrl+C ile kapatın. Testler gerçek API üzerinden demo, kaynak hücreleri, JOIN'de elenme, FALSE/UNKNOWN ayrımı, yazma reddi ve şema ilişkilerini inceler. Gerçek SQLite yükleme senaryosu ve düzenlenmiş SQL ile önceki sonucun ayrımı da sınanır. Doğrulama çıktısı `.artifacts/verification/latest.log` dosyasına kaydedilir. Ekran görüntüleri ve başarısız koşu izleri `frontend/test-results/` altında oluşur. Test dosyalarının hazırlanmış olması çalıştırıldıkları anlamına gelmez.
+Playwright üretim derlemesini sunan backend sunucusunu başlatır; 8000 portu boş olmalı. Önceden `start.sh` ile açılan sunucuyu Ctrl+C ile kapatın. Testler gerçek API üzerinden demo, kaynak hücreleri, JOIN'de elenme, FALSE/UNKNOWN ayrımı, yazma reddi ve şema ilişkilerini inceler. Gerçek SQLite yükleme senaryosu, düzenlenmiş SQL ile önceki sonucun ayrımı ve bekleyen isteği iptal ederken son başarılı sonucun korunması da sınanır. Doğrulama çıktısı `.artifacts/verification/latest.log` dosyasına kaydedilir. Ekran görüntüleri ve başarısız koşu izleri `frontend/test-results/` altında oluşur. Test dosyalarının hazırlanmış olması çalıştırıldıkları anlamına gelmez.
 
 Kaynak kartları gerçek sütun değerlerini, filtre açıklamaları karşılaştırılan değerleri gösterir. Anahtarın generated sütunların yanında bulunması da çekirdek regresyon testiyle kontrol edilir. Çalışma alanındaki kaynak numaraları kaynak birleşimleridir; kişi sayısı olarak yorumlanmamalıdır.
 

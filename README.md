@@ -93,7 +93,7 @@ Sonuç veya WHERE aşamasından seçilen satırda filtre koşulları ve karşıl
 
 Bir kaydın dalları farklı sonuçlanabilir: örneğin Ali'nin bir ders kaydı sonuçta kalırken diğerinin ders eşleşmesi bulunamayabilir. Kayıt yolculuğu, eşleşmeyen birleşimi kaybolduğu JOIN ve ON koşuluyla ayrı gösterir; Ali'nin kalan katkısı korunur.
 
-Her tamamlanan açıklama benzersiz bir oturum kimliği ve kullanılan SQL'i taşır. Düzenleyicideki metin sonradan değiştirilse bile “Çalıştırılan sorgu” bölümünde mevcut sonuçları üreten SQL görüntülenir. Yeni koşu başarısız olursa önceki başarılı açıklama korunur.
+Her tamamlanan açıklama benzersiz bir oturum kimliği ve kullanılan SQL'i taşır. “Çalıştırılan sorgu” bölümü yalnızca editörde değişiklik yaptığınızda görünür ve mevcut sonuçları üreten önceki SQL'i gösterir. Editörle sonuç aynı sorguya aitken ikinci SQL alanı gösterilmez. Yeni koşu başarısız olursa önceki başarılı açıklama korunur.
 
 Dosya yüklenince örnek sorgu, dosyadaki açıklanabilir bir tablodan otomatik seçilir; tablo adındaki boşluklar güvenle alıntılanır. Uygun INTEGER PRIMARY KEY yoksa dosya görüntülenebilir; açıklama sınırlaması gösterilir ve geçersiz örnek sorgu önerilmez.
 

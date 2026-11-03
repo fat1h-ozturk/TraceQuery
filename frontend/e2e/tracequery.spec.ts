@@ -61,17 +61,24 @@ test('schema exposes real foreign keys and an empty query stays a successful exp
  await expect(page.getByText('Sonuç yok.',{exact:false})).toBeVisible();
 });
 
-test('editing SQL preserves the query attached to the last successful explanation',async({page})=>{
+test('executed SQL appears only when the editor differs from the result query',async({page})=>{
  await page.getByRole('button',{name:'Çalıştır'}).click();
  await expect(page.getByRole('table',{name:'Sorgu sonucu'}).getByRole('row')).toHaveCount(3);
- await page.getByLabel('SQL sorgusu',{exact:true}).fill('SELECT o.ad FROM ogrenciler o WHERE o.id > 100');
+ await expect(page.locator('.executed-query')).toHaveCount(0);
+ const next='SELECT o.ad FROM ogrenciler o WHERE o.id > 100';
+ await page.getByLabel('SQL sorgusu',{exact:true}).fill(next);
  await page.getByText('Çalıştırılan sorgu',{exact:true}).click();
  await expect(page.locator('.executed-query code')).toContainText('WHERE k.notu >= 60');
  await expect(page.getByText('Sonuçlar önceki sorguya ait.',{exact:true})).toBeVisible();
  await page.getByRole('button',{name:'Çalıştır'}).click();
- await expect(page.locator('.executed-query code')).toContainText('WHERE o.id > 100');
- await expect(page.getByText('Sonuçlar önceki sorguya ait.',{exact:true})).toHaveCount(0);
  await expect(page.getByRole('table',{name:'Sorgu sonucu'}).getByRole('row')).toHaveCount(1);
+ await expect(page.locator('.executed-query')).toHaveCount(0);
+ await expect(page.getByText('Sonuçlar önceki sorguya ait.',{exact:true})).toHaveCount(0);
+ await page.getByLabel('SQL sorgusu',{exact:true}).fill('SELECT o.ad FROM ogrenciler o WHERE o.id > 200');
+ await page.getByText('Çalıştırılan sorgu',{exact:true}).click();
+ await expect(page.locator('.executed-query code')).toContainText('WHERE o.id > 100');
+ await page.getByLabel('SQL sorgusu',{exact:true}).fill(next);
+ await expect(page.locator('.executed-query')).toHaveCount(0);
 });
 
 test('a real uploaded SQLite file gets a valid query and keeps its original bytes',async({page},testInfo)=>{

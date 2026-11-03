@@ -147,8 +147,10 @@ export default function App(){
 
      {tab==='sonuc'&&!analysis&&<div className="empty">Sorgu çalıştırılmadı.</div>}
      {tab==='sonuc'&&analysis&&grid&&<>
-      {sql!==executedSql&&<p className="draft-note">Sonuçlar önceki sorguya ait.</p>}
-      <details className="executed-query"><summary>Çalıştırılan sorgu</summary><pre><code>{analysis.sql}</code></pre></details>
+      {sql!==executedSql&&<>
+       <p className="draft-note">Sonuçlar önceki sorguya ait.</p>
+       <details className="executed-query"><summary>Çalıştırılan sorgu</summary><pre><code>{analysis.sql}</code></pre></details>
+      </>}
       <div className="stage-flow">
        {analysis.stages.map((item,i)=><button key={i} className={stage===i?'chosen':''} onClick={()=>{setStage(i);setSelected(-1)}}><strong>{item.label}</strong><small>{item.count}</small></button>)}
        <button className={stage===-1?'chosen':''} onClick={()=>{setStage(-1);setSelected(-1)}}><strong>Sonuç</strong><small>{analysis.result.count}</small></button>

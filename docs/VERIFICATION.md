@@ -77,3 +77,7 @@ Kullanıcı araştırması yapılmadı ve eğitim başarısında ölçülmüş b
 - SQL metninin gönderildiği hâli ayrıca saklanır; sadece taslak değişirse önceki sonucun gösterildiği uyarılır. Normalleştirilmiş SQL'in satır sonları gereksiz uyarı oluşturmaz. Mevcut SQL bağlamı testi bu uyarının açılıp kapanmasını da doğrular.
 - Bağımsız incelemede iptal, istek sahipliği, sonuç bağlamı ve klavye erişiminde regresyon bulunmadı. Satır numarası düğmesinin klavye etkinleştirmesi satır seçimine iletilir; fareyle tüm satır seçilebilir.
 - 1440×900 masaüstü ve 390×844 mobilde ilk ekran ve sonuç görünümü kontrol edildi. Geist yüklendi, yatay taşma yok, normal sonuçta gereksiz taslak uyarısı yok; hücreye tıklamak kaynak panelini açtı. Dört ekran görüntüsü `.artifacts/minimal/` altında, ilk ekran ve masaüstü sonuç görsel olarak incelendi.
+
+## Yinelenen SQL alanı
+
+Sonuçların sorgusu editörle aynıysa ikinci SQL bölümü gösterilmez. Taslak değişince önceki sonucun sorgusuna erişim korunur; yeni sorgu çalıştırıldığında veya taslak son çalıştırılan metne döndürüldüğünde bölüm tekrar kaybolur. Güncellenen Chromium testi önce gereksiz alanın varlığı nedeniyle başarısız oldu; koşullu gösterim sonrası tam doğrulamada geçti.

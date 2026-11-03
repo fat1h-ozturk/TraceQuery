@@ -96,6 +96,31 @@ class CoreTests(unittest.TestCase):
         finally: db.close()
         self.assertIn('sqlitecache',[t['name'] for t in inspect_database(self.path)])
 
+    def test_pre_cancelled_explanation_never_returns_partial_success(self):
+        from threading import Event
+        from tracequery.engine import execute_plan, QueryError
+        cancelled=Event()
+        cancelled.set()
+        before=self.path.read_bytes()
+        with self.assertRaisesRegex(QueryError,'iptal'):
+            execute_plan(self.path,self.plan,cancel=cancelled)
+        self.assertEqual(self.path.read_bytes(),before)
+
+    def test_sqlite_progress_handler_interrupts_a_cancelled_query(self):
+        from threading import Event
+        from tracequery.engine import connect, QueryError
+        cancelled=Event()
+        with self.assertRaisesRegex(QueryError,'iptal'):
+            with connect(self.path,cancel=cancelled) as db:
+                cancelled.set()
+                db.execute('WITH RECURSIVE nums(n) AS (SELECT 1 UNION ALL SELECT n+1 FROM nums WHERE n<1000000) SELECT sum(n) FROM nums').fetchone()
+
+    def test_expired_budget_does_not_return_success(self):
+        from tracequery.engine import connect, QueryError
+        with self.assertRaisesRegex(QueryError,'süre'):
+            with connect(self.path,timeout_seconds=0) as db:
+                db.execute('SELECT 1')
+
     def test_missing_file_does_not_get_created(self):
         from tracequery.engine import inspect_database, QueryError
         missing=self.path.parent/'missing.db'

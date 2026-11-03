@@ -36,3 +36,9 @@ PyPI kurulumu paket bulamama/ağ erişimi hatasıyla, npm kurulumu `EAI_AGAIN re
 İsteğe bağlı karşılaştırma/dışa aktarma ve sonraki doğal dil modülü henüz uygulanmadı. Bu kayıt bitiş veya üretime hazır olma iddiası değildir.
 
 Bağımsız ikinci inceleme, kaynak kayıt/filtre payloadları ve frontend tiplerini kontrol etti; çekirdek 16 test ayrıca tekrar geçti. Sayfalama offset taşması regresyonla düzeltildi; SELECT takma adının WHERE/ON içinde kullanılması destek sınırı olarak belgelendi. Tarayıcı testlerinin çalıştırılmadığı sınırı değişmedi.
+
+## Sorgu iptal çekirdeği
+
+- `threading.Event` ile önceden iptal edilmiş sorgu reddi ve SQLite progress handler üzerinden çalışan sorgunun kesilmesi eklendi.
+- Süre bütçesi dolduğunda kısmi başarı yerine anlaşılır hata veriliyor.
+- Üç yeni gerçek SQLite testiyle toplam 19 çekirdek testi geçti. HTTP kopması ve arayüz iptal düğmesi bu adımda henüz bağlı değil.

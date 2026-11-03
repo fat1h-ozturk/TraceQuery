@@ -21,18 +21,26 @@ def quote(name):
     return '"' + name.replace('"', '""') + '"'
 
 @contextmanager
-def connect(path):
+def connect(path, cancel=None, timeout_seconds=5):
     db = None
+    deadline = time.monotonic() + timeout_seconds
+    def check_budget():
+        if cancel is not None and cancel.is_set():
+            raise QueryError('İşlem kullanıcı tarafından iptal edildi.')
+        if time.monotonic() >= deadline:
+            raise QueryError('Sorgu süre sınırını aştı; açıklama tamamlanmadı.')
+    check_budget()
     try:
         if sqlite3.sqlite_version_info < (3,37,0):
             raise QueryError('TraceQuery için SQLite 3.37 veya daha yenisi gerekli.')
         db = sqlite3.connect(Path(path).resolve().as_uri() + '?mode=ro', uri=True)
         db.execute('PRAGMA query_only=ON')
-        deadline = time.monotonic() + 5
-        db.set_progress_handler(lambda: int(time.monotonic() > deadline), 1000)
+        db.set_progress_handler(lambda: int((cancel is not None and cancel.is_set()) or time.monotonic() >= deadline), 1000)
         db.execute('BEGIN')
         yield db
+        check_budget()
     except sqlite3.Error as error:
+        check_budget()
         raise QueryError(f'SQLite işlemi tamamlanamadı: {error}') from error
     finally:
         if db is not None:
@@ -143,13 +151,13 @@ def parse_query(sql):
     return {'filters':filters,'tables':roles,'joins':joins,'projections' :[e.sql(dialect='sqlite') for e in query.expressions],
             'where':where.this.sql(dialect='sqlite') if where else None,'sql':query.sql(dialect='sqlite')}
 
-def explain(path, sql, max_rows=1000):
+def explain(path, sql, max_rows=1000, cancel=None):
     if len(sql)>20000: raise QueryError('Sorgu uzunluk sınırını aşıyor.')
-    return execute_plan(path,parse_query(sql),max_rows)
+    return execute_plan(path,parse_query(sql),max_rows,cancel=cancel)
 
-def execute_plan(path, plan, max_rows=1000):
+def execute_plan(path, plan, max_rows=1000, cancel=None):
     """Internal only: plan is produced by parse_query, never accepted from the API."""
-    with connect(path) as db:
+    with connect(path,cancel=cancel) as db:
         entries={t['name']:t for t in schema(db)}
         canonical={sqlite_name(name):name for name in entries}
         roles=[(canonical.get(sqlite_name(name),name),alias) for name,alias in plan['tables']]
@@ -225,6 +233,8 @@ def execute_plan(path, plan, max_rows=1000):
         outcomes=[]
         for name,a in roles:
             for identity in source_ids[a]:
+                if cancel is not None and cancel.is_set():
+                    raise QueryError('İşlem kullanıcı tarafından iptal edildi.')
                 counts=[sum(r['sources'].get(a)==identity for r in stage['rows']) if a in stage['aliases'] else None for stage in stages]
                 outcomes.append({'table':name,'alias':a,'id':identity,'counts':counts,
                                  'record':source_records[a][identity],

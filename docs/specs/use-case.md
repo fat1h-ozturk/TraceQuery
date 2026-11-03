@@ -268,7 +268,7 @@ Kullanıcı seçilen sonuç satırının hangi kaynak kayıt birleşiminden üre
 
 ### Örnek sonuçlar
 
-- **Hiç ilk eşleşme yok:** “Mehmet'in `kayitlar` tablosunda `o.id = k.ogrenci_id` koşulunu sağlayan kaydı yok.”
+- **Hiç ilk eşleşme yok:** “Mehmet'in `kayitlar` tablosunda `ogrenciler.id = kayitlar.ogrenci_id` koşulunu sağlayan kaydı yok.”
 - **İlk eşleşme var, sonraki JOIN'de yok:** Öğrenci ders kaydına bağlanmış ama ilgili ders bulunamamıştır; açıklama ilk JOIN'de hata varmış gibi sunulmaz.
 - **Filtrede elenme:** “Ayşe'nin bu ders kaydında not 45; `notu >= 60` FALSE.”
 - **NULL nedeniyle elenme:** “Not NULL olduğu için `notu >= 60` TRUE olmadı.”
@@ -337,11 +337,11 @@ Görünür sayfa veya örnekler dışa aktarılıyorsa rapor bunu belirtir. Çal
 ### Sorgu
 
 ```sql
-SELECT o.ad, d.ad AS ders, k.notu
-FROM ogrenciler o
-JOIN kayitlar k ON o.id = k.ogrenci_id
-JOIN dersler d ON d.id = k.ders_id
-WHERE k.notu >= 60;
+SELECT ogrenciler.ad, dersler.ad AS ders, kayitlar.notu
+FROM ogrenciler
+JOIN kayitlar ON ogrenciler.id = kayitlar.ogrenci_id
+JOIN dersler ON dersler.id = kayitlar.ders_id
+WHERE kayitlar.notu >= 60;
 ```
 
 ### Beklenen mantıksal gözlemler

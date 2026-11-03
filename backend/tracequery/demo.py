@@ -1,10 +1,10 @@
 import sqlite3
 
-DEMO_SQL = '''SELECT o.ad, d.ad AS ders, k.notu
-FROM ogrenciler o
-JOIN kayitlar k ON o.id = k.ogrenci_id
-JOIN dersler d ON d.id = k.ders_id
-WHERE k.notu >= 60'''
+DEMO_SQL = '''SELECT ogrenciler.ad, dersler.ad AS ders, kayitlar.notu
+FROM ogrenciler
+JOIN kayitlar ON ogrenciler.id = kayitlar.ogrenci_id
+JOIN dersler ON dersler.id = kayitlar.ders_id
+WHERE kayitlar.notu >= 60'''
 
 def create_demo(path):
     db=sqlite3.connect(path)

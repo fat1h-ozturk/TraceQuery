@@ -81,3 +81,7 @@ Kullanıcı araştırması yapılmadı ve eğitim başarısında ölçülmüş b
 ## Yinelenen SQL alanı
 
 Sonuçların sorgusu editörle aynıysa ikinci SQL bölümü gösterilmez. Taslak değişince önceki sonucun sorgusuna erişim korunur; yeni sorgu çalıştırıldığında veya taslak son çalıştırılan metne döndürüldüğünde bölüm tekrar kaybolur. Güncellenen Chromium testi önce gereksiz alanın varlığı nedeniyle başarısız oldu; koşullu gösterim sonrası tam doğrulamada geçti.
+
+## Okunabilir demo sorgusu
+
+Öğrenci demosu `o/k/d` tablo takma adları yerine `ogrenciler`, `kayitlar`, `dersler` adlarını doğrudan kullanır. Demo API testinde tam kaynak adları önce başarısız oldu; yeni SQL sonrası tüm 58 backend ve 9 Chromium testi geçti. Tarayıcı, başlangıç sorgusunda kısaltılmış tablo başvurusu bulunmadığını da kontrol eder. Aynı tablo/rol adının kaynak kartı ve eşleşme açıklamasında iki kez yazılması önlenir; kullanıcının kendi sorgularında takma ad desteği korunur.

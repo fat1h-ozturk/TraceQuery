@@ -166,7 +166,7 @@ export default function App(){
         {row?Object.entries(row.sources).map(([alias,id])=>{
          const source=analysis.outcomes.find(item=>item.alias===alias&&item.id===id);
          return <div className="source-card" key={alias}>
-          <div className="source-heading"><span>{source?.table??alias}</span><strong>{alias} · #{id}</strong></div>
+          <div className="source-heading"><span>{source?.table??alias}</span><strong>{alias!==source?.table&&`${alias} · `}#{id}</strong></div>
           <RecordValues record={source?.record??{}}/>
           <button disabled={!source} onClick={()=>setFocus(source??null)}>Kaydı incele</button>
          </div>;
@@ -189,7 +189,7 @@ export default function App(){
          <p>{Object.entries(branch.sources).map(([alias,id])=>`${alias}: ${id}`).join(', ')}</p>
          <h3>{analysis.stages[branch.stage].label}: eşleşme bulunamadı</h3>
          <code>{branch.condition}</code>
-         <p>{branch.target.table} ({branch.target.alias}) tablosunda eşleşme yok.</p>
+         <p>{branch.target.table}{branch.target.alias!==branch.target.table&&` (${branch.target.alias})`} tablosunda eşleşme yok.</p>
         </div>)}
         {analysis.excluded.filter(item=>item.sources[focus.alias]===focus.id).map((item,i)=><div className="excluded-branch" key={i}>
          <p>{Object.entries(item.sources).map(([alias,id])=>`${alias}: ${id}`).join(', ')}</p><FilterChecks checks={item.checks}/>

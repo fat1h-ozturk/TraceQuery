@@ -17,6 +17,8 @@ test.beforeEach(async({page})=>{
 });
 
 test('actual demo shows source values, missing JOIN records and FALSE versus UNKNOWN',async({page},testInfo)=>{
+ await expect(page.getByLabel('SQL sorgusu',{exact:true})).toHaveValue(/SELECT ogrenciler\.ad, dersler\.ad AS ders, kayitlar\.notu/);
+ await expect(page.getByLabel('SQL sorgusu',{exact:true})).not.toHaveValue(/\b(?:o|k|d)\./);
  await page.getByRole('button',{name:'Çalıştır'}).click();
  const table=page.getByRole('table',{name:'Sorgu sonucu'});
  await expect(table.getByRole('row')).toHaveCount(3);
@@ -30,11 +32,11 @@ test('actual demo shows source values, missing JOIN records and FALSE versus UNK
  await expect(sources.locator('.filter-check').getByText('80',{exact:true})).toBeVisible();
  await expect(sources.locator('.filter-check').getByRole('definition').filter({hasText:/^60$/})).toBeVisible();
  await page.screenshot({path:testInfo.outputPath('demo-provenance.png'),fullPage:true});
- await page.getByRole('button',{name:/o · #3.*Mehmet/}).click();
+ await page.getByRole('button',{name:/ogrenciler · #3.*Mehmet/}).click();
  await expect(page.getByRole('heading',{name:'JOIN 1: eşleşme bulunamadı'})).toBeVisible();
- await expect(page.locator('.join-loss')).toContainText('kayitlar (k)');
- await expect(page.locator('.join-loss')).toContainText('o.id = k.ogrenci_id');
- await page.getByRole('button',{name:/o · #2.*Ayşe/}).click();
+ await expect(page.locator('.join-loss')).toContainText('kayitlar tablosunda');
+ await expect(page.locator('.join-loss')).toContainText('ogrenciler.id = kayitlar.ogrenci_id');
+ await page.getByRole('button',{name:/ogrenciler · #2.*Ayşe/}).click();
  await expect(page.locator('.filter-check').getByText('FALSE',{exact:true})).toBeVisible();
  await expect(page.locator('.filter-check').getByText('UNKNOWN',{exact:true})).toBeVisible();
  await expect(page.locator('.filter-check').getByText('45',{exact:true})).toBeVisible();
@@ -68,7 +70,7 @@ test('executed SQL appears only when the editor differs from the result query',a
  const next='SELECT o.ad FROM ogrenciler o WHERE o.id > 100';
  await page.getByLabel('SQL sorgusu',{exact:true}).fill(next);
  await page.getByText('Çalıştırılan sorgu',{exact:true}).click();
- await expect(page.locator('.executed-query code')).toContainText('WHERE k.notu >= 60');
+ await expect(page.locator('.executed-query code')).toContainText('WHERE kayitlar.notu >= 60');
  await expect(page.getByText('Sonuçlar önceki sorguya ait.',{exact:true})).toBeVisible();
  await page.getByRole('button',{name:'Çalıştır'}).click();
  await expect(page.getByRole('table',{name:'Sorgu sonucu'}).getByRole('row')).toHaveCount(1);
@@ -125,7 +127,7 @@ test('cancelling a pending query preserves its previous result and blocks table 
   await expect(table.getByRole('row')).toHaveCount(3);
   await expect(page.getByRole('button',{name:'Çalıştır'})).toBeEnabled();
   await page.getByText('Çalıştırılan sorgu',{exact:true}).click();
-  await expect(page.locator('.executed-query code')).toContainText('WHERE k.notu >= 60');
+  await expect(page.locator('.executed-query code')).toContainText('WHERE kayitlar.notu >= 60');
  } finally {
   release();
   await page.unrouteAll({behavior:'wait'});

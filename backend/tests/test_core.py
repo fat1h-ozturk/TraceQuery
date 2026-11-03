@@ -103,17 +103,17 @@ class CoreTests(unittest.TestCase):
         from tracequery.engine import execute_plan
         path=self.path.parent/'reference.db'
         create_demo(path)
-        plan={'tables':[('ogrenciler','o'),('kayitlar','k'),('dersler','d')],
-              'joins':['o.id = k.ogrenci_id','d.id = k.ders_id'],
-              'projections':['o.ad','d.ad AS ders','k.notu'],
-              'where':'k.notu >= 60','sql':DEMO_SQL}
+        plan={'tables':[('ogrenciler','ogrenciler'),('kayitlar','kayitlar'),('dersler','dersler')],
+              'joins':['ogrenciler.id = kayitlar.ogrenci_id','dersler.id = kayitlar.ders_id'],
+              'projections':['ogrenciler.ad','dersler.ad AS ders','kayitlar.notu'],
+              'where':'kayitlar.notu >= 60','sql':DEMO_SQL}
         result=execute_plan(path,plan)
-        actual={(tuple(row['values']),row['sources']['o'],row['sources']['k'],row['sources']['d'])
+        actual={(tuple(row['values']),row['sources']['ogrenciler'],row['sources']['kayitlar'],row['sources']['dersler'])
                 for row in result['result']['rows']}
         self.assertEqual(actual,{(('Ali','Matematik',80),1,101,10),
                                  (('Ali','Fizik',75),1,102,20)})
         self.assertEqual([stage['count'] for stage in result['stages']],[3,4,4,2])
-        self.assertEqual({(row['sources']['k'],row['reason']) for row in result['excluded']},
+        self.assertEqual({(row['sources']['kayitlar'],row['reason']) for row in result['excluded']},
                          {(103,'FALSE'),(104,'UNKNOWN')})
 
     def test_running_sqlite_query_is_interrupted_when_its_time_budget_expires(self):

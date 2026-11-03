@@ -1,9 +1,9 @@
-# SQL İzleyici — Kullanım Senaryosu Belgesi
+# TraceQuery — Kullanım Senaryosu Belgesi
 
 **Tarih:** 2 Kasım 2026  
 **Sürüm:** 1.0 — İlk prototip için önerilen kullanım senaryoları  
 **Proje:** Sorgu sonuçlarını kaynak kayıtlarla ve mantıksal işlem aşamalarıyla açıklayan veritabanı görüntüleyicisi  
-**Durum:** Gereksinim belgesi; aşağıdaki davranışlar geliştirme hedefidir, uygulanmış özellik veya test sonucu değildir.
+**Durum:** Gereksinim belgesi. İlk yerel sürümün uygulanmış kapsamı ve test kanıtları [doğrulama kaydında](../VERIFICATION.md) belirtilir; bu belge tek başına test sonucu değildir.
 
 ## 1. Amaç
 
@@ -38,7 +38,7 @@ Sistem, SQLite dosyasını açar; tablo ve verileri gösterir; desteklenen sorgu
 
 `LEFT/RIGHT/FULL JOIN`, `NATURAL JOIN`, `USING`, `GROUP BY`, `HAVING`, aggregate fonksiyonlar, `DISTINCT`, `ORDER BY`, sorgu içi `LIMIT/OFFSET`, alt sorgular, CTE, UNION ve pencere fonksiyonları; görünüm/virtual table açıklaması; kullanıcı tanımlı fonksiyonlar; veri yazma, şema değiştirme ve farklı veritabanı motorları.
 
-Yıldızla sütun seçimi gibi ek sözdizimleri ancak açıkça tanımlanıp doğrulanırsa eklenir. Belge, desteklenmeyen bir sorguyu açıklayabiliyormuş gibi kabul etmez.
+İlk uygulamada `SELECT *`, dosyaya uygun örnek sorgu ve gerçek tarayıcı yükleme senaryosuyla doğrulanmıştır. Diğer ek sözdizimleri ancak açıkça tanımlanıp doğrulanırsa eklenir. Belge, desteklenmeyen bir sorguyu açıklayabiliyormuş gibi kabul etmez.
 
 **Sayfalama ayrımı:** Arayüzün tabloyu sayfalaması, kullanıcının sorgusuna sessizce `LIMIT` eklenmesi veya görüntülenen sayfanın bütün sonuç sayılması anlamına gelmez.
 
@@ -391,7 +391,7 @@ UC-01 dosyayı aç → UC-02 tabloları incele → UC-03 sorguyu çalıştır ve
 | AC-13 | İptal veya sınır aşımı başarı gibi sunulmaz | Tamamlanmamış açıklama durumu |
 | AC-14 | Aşama görünümü fiziksel yürütme iddiası taşımaz | Arayüz ve rapordaki açıklama |
 
-Kabul ölçütleri gelecekte uygulanacak doğrulama hedefleridir; henüz geçtiği iddia edilmiyor. Kaynak izinin doğruluğu yalnız ekrandaki metinle değil, bağımsız beklenen kayıt kimlikleriyle denetlenmelidir.
+Kabul ölçütlerinin güncel kanıtları [doğrulama kaydında](../VERIFICATION.md) listelenir. Kaynak izinin doğruluğu yalnız ekrandaki metinle değil, bağımsız beklenen kayıt kimlikleriyle denetlenmelidir.
 
 ## 17. Akademik değerlendirme senaryosu
 
@@ -437,4 +437,4 @@ UC-08 ve UC-09 yalnız çekirdek senaryolar doğrulandıktan sonra eklenir. İki
 - [SQLite SELECT semantiği](https://sqlite.org/lang_select.html): JOIN, WHERE ve mantıksal açıklama ile fiziksel yürütme ayrımı.
 - [SQLucid: Grounding Natural Language Database Queries with Interactive Explanations](https://arxiv.org/abs/2409.06178): Akademik bağlam.
 
-Bu belge kullanım davranışlarını ve kabul koşullarını tanımlar. Teknoloji yığını, SQL ayrıştırıcı seçimi, ekran tasarımı ve ayrıntılı uygulama planı henüz kesinleştirilmedi. Uygulama kodu, kurulum veya kullanıcı veritabanına müdahale yapılmadı.
+Bu belge kullanım davranışlarını ve kabul koşullarını tanımlar. Güncel teknoloji yığını ve kurulum README içinde, gerçekleşen kabul kontrolleri doğrulama kaydında tutulur. İlk sürüm kaynak veritabanını değiştirmez. Kullanıcı değerlendirmesi ve isteğe bağlı sonraki özellikler, uygulanmış çekirdekle karıştırılmamalıdır.

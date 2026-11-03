@@ -1,84 +1,69 @@
 # TraceQuery doğrulama durumu
 
-**Tarih:** 3 Kasım 2026. **Sonuç:** Backend/parser/HTTP ve üretim derlemesi doğrulandı; gerçek tarayıcı akışı henüz kanıtlanmadı.
+**Tarih:** 3 Kasım 2026. **Sonuç:** İlk yerel SQLite sürümü uçtan uca doğrulandı. Son `./scripts/verify.sh` koşusu çıkış kodu 0 ile tamamlandı.
 
-## Güncel koşular
+## Son koşu
 
 | Kontrol | Sonuç |
 |---|---|
-| Gerçek SQLite çekirdek unittest suite | 28 başarılı |
-| Gerçek SQLite ile asenkron bağlantı-kopması suite | 2 başarılı |
-| Projenin .venv ortamında tüm backend testleri | 58 başarılı, atlama yok; 1 bağımlılık deprecation uyarısı |
-| Python compileall | Başarılı |
-| git diff --check | Başarılı |
-| scripts/verify.sh | 54 backend testi ve build geçti; Playwright sunucusu TCP dinleme engelinde durdu; hata kodu/log korundu |
-| npm run build | TypeScript kontrolü ve Vite üretim derlemesi başarılı |
-| Playwright | Kullanıcı terminalinde ilk koşu: 5 geçti, 1 belirsiz locator nedeniyle başarısız; düzeltme sonrası tekrar bekliyor |
+| Backend: SQLite motoru, SQLGlot, FastAPI, iptal orkestrasyonu | 58 başarılı, atlama yok |
+| TypeScript kontrolü ve Vite üretim derlemesi | Başarılı |
+| Gerçek Chromium + üretim HTTP sunucusu | 8 başarılı |
+| Python compileall, bash sözdizimi, git diff --check | Başarılı |
+| scripts/start.sh | Üretim arayüzünü derledi, 127.0.0.1:8000 üzerinde sunucu açtı |
+| Canlı sunucu kontrolü | Ana HTML ve iki derleme asset'i HTTP 200; demo/explain HTTP 200, tamamlanmış 2 sonuç |
 
-Önceki paket engeli kullanıcı terminalinde kurulumla kalktı. SQLGlot 29.0.1 ve FastAPI 0.162.0 ile gerçek ayrıştırıcı/HTTP testleri artık çalışıyor. Üretim arayüzü gerçek Chromium ile açıldı. İlk koşuda dosya yükleme, yazma reddi, şema/boş sonuç, eski SQL bağlamı ve frontend iptal senaryoları geçti. Ana demo, kopyalanmış 60 etiketini ayıramayan test seçicisinde durdu; JOIN/WHERE son inceleme adımlarına ulaşmadı. TestClient'ın httpx için verdiği deprecation uyarısı testleri başarısız kılmıyor.
+Tam koşunun çıktısı `.artifacts/verification/latest.log` içindedir. Chromium sonuçları ve dört ekran görüntüsü `frontend/test-results/` altında oluşur. Bu geçici çıktılar Git'e eklenmez ve sonraki test koşusunda yenilenebilir. Kaynak testler ve bu doğrulama kaydı sürüm kontrolündedir.
 
-Standart kütüphane kontrolleri:
+## Gerçek tarayıcı senaryoları
 
-```bash
-PYTHONPATH=backend python -m unittest discover -s backend/tests -p test_core.py -v
-PYTHONPATH=backend python -m unittest discover -s backend/tests -p test_execution.py -v
-python -m compileall -q backend
-```
+`frontend/e2e/tracequery.spec.ts`, aynı üretim derlemesini gerçek FastAPI sunucusundan açar. API sonuçları taklit edilmez. Üç dosya fixture'ı gerçek sqlite3 ile üretilir.
 
-## Kabul ölçütleri denetimi
+1. Öğrenci demosu: gerçek kaynak hücreleri, Mehmet'in JOIN 1 kaybı, Ayşe'nin FALSE ve UNKNOWN dalları.
+2. DELETE girişimi: anlaşılır ret ve kaynak öğrencilerin korunması.
+3. Şema: gerçek foreign key hedefleri ve başarılı sıfır sonuç.
+4. SQL düzenleme: son başarılı sonuçların bağlı olduğu SQL'in korunması ve yeni koşuda güncellenmesi.
+5. SQLite yükleme: boşluk/slash içeren tablo, geçerli örnek sorgu, kaynak kartı, tablo gezintisi ve orijinal dosya byte karşılaştırması.
+6. İptal: bekleyen isteğin iptali, önceki sonuç/SQL'in korunması ve eşzamanlı tablo işleminin engellenmesi.
+7. Tekrarlı sonuç/kısmi kayıp: aynı görünen iki Ali satırının 101/80 ve 102/75 kaynaklarının korunması; JOIN ara sonucu; sonraki JOIN'de yalnız 102 dalının kaybı ve Ali'nin kalan katkısı.
+8. Anahtarsız tablo: veri okunur, uygun olmayan açıklama işlemi devre dışı kalır ve şema sınırlaması görünür.
 
-Test adları `backend/tests/test_core.py` içinde; iptal orkestrasyonu `backend/tests/test_execution.py` içinde bulunur. Çekirdek ve HTTP kanıtları aşağıda ayrılır; arayüz sütunundaki bekleyen işler henüz tamamlandı sayılmaz.
+Demo FALSE/UNKNOWN ve kısmi JOIN ekran görüntüleri görsel olarak incelendi; kayıt değerleri, aşama sayıları ve elenme açıklamaları test beklentileriyle tutarlı.
 
-| Ölçüt | Mevcut doğrudan kanıt | Kalan doğrulama |
-|---|---|---|
-| AC-01 Salt okunur veri | Çekirdek/HTTP byte kontrolü ve kapanış temizliği; Chromium gerçek dosya yükleme testi geçti | Son özel karakterli tablo varyantının browser koşusu |
-| AC-02 Olmayan dosya yaratılmaz | `test_missing_file_does_not_get_created` | Çekirdek davranış kanıtlandı |
-| AC-03 Kapsam dışı SQL reddi | SQLGlot/HTTP reddi ve Chromium DELETE hata + kaynak korunumu geçti | Kanıt mevcut |
-| AC-04 Örnek sonuç | Gerçek SQLite çekirdeği, parser ve HTTP demo testleri geçti | Tarayıcı sonuç tablosu |
-| AC-05 JOIN/WHERE ayrımı | Aynı örnekte 3/4/4/2 aşama sayıları; Mehmet JOIN, Ayşe WHERE | Ekranda gerçek akış |
-| AC-06 Doğru kaynak izi | Çekirdek/parser/HTTP kaynakları; Chromium demoda Ali/Matematik/80 ve yüklenen dosyada Notebook kaynak kartı | Ana demo kalan JOIN/WHERE adımları |
-| AC-07 Aynı değerli satırlar | Ayrı kaynak kimlikli iki Ali; 80/75 filtre operandları korunur | Tarayıcı satır seçimi |
-| AC-08 NULL ayrımı | Gerçek parser ve çekirdekte NULL not UNKNOWN, 45 not FALSE | Arayüz |
-| AC-09 Sonraki JOIN kaybı | `test_later_join_keeps_a_surviving_branch_and_explains_the_lost_one`: 102 kaydı JOIN 2'de kaybolur | API/tarayıcı |
-| AC-10 Kısmi katılım | Aynı testte Ali'nin bir sonucu kalır; kayıp dal ayrı saklanır | Tarayıcı yolculuk görünümü |
-| AC-11 Boş sonuç | Çekirdek/parser testleri ve Chromium sıfır sonuç/ilişkiler testi geçti | Kanıt mevcut |
-| AC-12 Kimlik uydurulmaz | Anahtarsız/nullable/tekrarlı/büyük anahtar çekirdek testleri; gerçek parser reddi; register geçersiz örnek sunmaz | UI uyarısı |
-| AC-13 İptal/sınır başarısızlığı | Kaynak sınırı ve küçük kaynaklardan 9 birleşime büyüyen JOIN sınırı, önceden iptal, çalışan SQLite iptali, çalışan sorguda süre sınırı, gerçek worker temizliği | Tarayıcıdan HTTP kopmasıyla bütün hat |
-| AC-14 Mantıksal açıklama | Motor uyarısı ve UI metni mevcut | Gerçek ekran kontrolü |
+## Kabul ölçütleri
 
-## Ek çekirdek kanıtları
+| Ölçüt | Doğrudan kanıt |
+|---|---|
+| AC-01 Salt okunur veri | Çekirdek/HTTP orijinal ve kopya byte kontrolü; Chromium yükleme testi; HTTP kapanışında geçici kopya temizliği |
+| AC-02 Olmayan dosya yaratılmaz | `test_missing_file_does_not_get_created` |
+| AC-03 Kapsam dışı SQL reddi | Gerçek SQLGlot kapsam testleri, HTTP DELETE reddi, Chromium ret + kaynakların korunması |
+| AC-04 Örnek sonuç | Ali/Matematik/80 ve Ali/Fizik/75 için çekirdek/parser/HTTP ve Chromium demo |
+| AC-05 JOIN/WHERE ayrımı | 3/4/4/2 aşama sayıları; Chromium JOIN ara tablosu ve demo elenme açıklamaları |
+| AC-06 Doğru kaynak izi | 1/101/10 ve 1/102/20 çekirdek bağlantıları; Chromium kaynak hücreleri |
+| AC-07 Aynı değerli satırlar | Aynı görünen iki Ali satırından ayrı 101/80 ve 102/75 kaynaklarına gerçek tarayıcı seçimi; fiziksel sıra varsayılmaz |
+| AC-08 NULL ayrımı | SQLite/parser testleri; Chromium'da 45/FALSE ve NULL/UNKNOWN |
+| AC-09 Sonraki JOIN kaybı | Gerçek SQLite ve Chromium: 102 kaydı JOIN 2'de elenir, JOIN 1'e yanlış bağlanmaz |
+| AC-10 Kısmi katılım | Ali'nin 1 sonucu kalırken 102 dalı ayrıca gösterilir; çekirdek ve Chromium |
+| AC-11 Boş sonuç | Çekirdek/parser ve Chromium sıfır sonuç; kayıt izi erişimi korunur |
+| AC-12 Kimlik uydurulmaz | Anahtarsız/nullable/tekrarlı/büyük kimlik reddi; generated sütun testi; Chromium anahtarsız tablo uyarısı |
+| AC-13 İptal/sınır başarı sayılmaz | Kaynak ve büyüyen JOIN sınırı; çalışan SQLite süre/iptal testleri; worker temizliği; Chromium eski sonucun korunması |
+| AC-14 Mantıksal açıklama | Motor uyarısı, README ve gerçek ekranın fiziksel yürütme iddiası taşımayan açıklaması |
 
-- Her başarılı açıklama farklı oturum kimliği, `status: complete` ve kullanılan SQL'i taşır. Aynı sorgunun kaynak sonuçları değişmez.
-- AND koşullarının operandları ve ayrı TRUE/FALSE/UNKNOWN değerleri SQLite tarafından hesaplanır; Python SQL karşılaştırma semantiğini taklit etmez.
-- Sonuç ve WHERE aşamasında geçen satırın filtre değerleri gösterim için taşınır. Önceki aşamalara sonraki filtre sonucu eklenmez.
-- Self-JOIN rolleri ayrı tutulur; 10 alias için aşama sayımları ve katkılar kontrol edilir.
-- BLOB JSON için hex'e, JS aralığı dışı normal hücre tamsayıları metne çevrilir; kaynak kimlikleri için aynı değerler açıklamayı reddettirir.
-- Asenkron test ortamında çıplak `asyncio.to_thread` ile de kapanış beklemesi yeniden üretildi. Yalnız test temizliğinde küçük bir loop zamanlayıcısı kullanılır; gerçek SQLite çalışması taklit edilmez.
+## İnceleme ve düzeltmeler
 
-## Kurulum ve gerçek ekran doğrulaması
+- Bağımsız kod incelemelerinde bulunan NULL/tekrarlı kaynak kimliği, JS aralığı dışı kimlik, BLOB ve generated sütun sorunları gerçek başarısız testlerle giderildi.
+- Python kaynak sayımının süre bütçesi ve maliyeti ortak bütçe/aşama sayaçlarıyla düzeltildi; 10 alias sayımları kontrol edilir.
+- Yüklenen dosyaya öğrenci sorgusu önerme hatası giderildi; dosyanın kendi PK'li tablosu seçilir. Uygun tablo yoksa geçersiz örnek sunulmaz.
+- Slash/nokta/soru işareti içeren tablo adlarının gezintisi query parametresiyle düzeltilip dört gerçek HTTP testiyle doğrulandı. Eski URI yolu da korunur.
+- İki Chromium seçici hatası, gerçek başarısız koşu ardından hedefi daraltılarak düzeltildi: 60 etiketinden hücre değeri ayrılır; tablo düğmesi sol gezintiyle sınırlandırılır.
+- README geliştirme komutu açık Uvicorn komutuyla güncellendi. Çalışma mevcut geliştirme dalında tutulur; merge/push yapılmadı.
 
-Paketler kuruldu. Kalan ortam kısıtı, bu oturumda TCP soketi oluşturmanın `Operation not permitted` ile engellenmesi: gerçek Uvicorn yaşam döngüsü başlıyor, 127.0.0.1:8000 dinleme aşaması başarısız oluyor. Ayrıca Computer Use tarayıcı erişim sunucusu mevcut değil. Paket/ürün kodunu değiştirerek bu kısıt aşılmaya çalışılmadı.
+## Sınırlar
 
-TestClient portalının aynı ortamdaki thread uyanma sorunu, küçük bir gerçek Starlette uygulamasında üretildi. Asenkron testlerdeki gibi test loop'una periyodik uyanma eklenince gerçek TestClient + HTTP + SQLite akışı tamamlandı. Ürün koduna sahte istek veya sonuç eklenmedi; testler atlanmadı.
+Bu doğrulama, README'de belirtilen yerel SQLite ve SELECT/eşitlik INNER JOIN/basit WHERE kapsamını kapsar. Sorgu açıklaması tek sütunlu güvenli INTEGER PRIMARY KEY gerektirir; kaynak/ara sonuç 1.000 satır, dosya 10 MB ve hesaplama yaklaşık 5 saniye ile sınırlıdır. Çok kullanıcılı veya genel internete açık dağıtım doğrulanmadı.
 
-Kullanıcının normal terminalinde Chromium kurulumu tamamlanınca proje kökünde `./scripts/verify.sh` çalıştırılmalı. Bu komut tüm backend testlerini, üretim derlemesini ve bu derlemeyi sunan gerçek API üzerinden altı Playwright senaryosunu koşar; çıktıyı `.artifacts/verification/latest.log` dosyasına yazar. Testler demo, kaynaklar, JOIN/WHERE kaybı, yazma reddi, şema, boş sonuç, eski SQL bağlamı ve gerçek SQLite dosya yüklemesini kapsar. Başarılı/başarısız ekran örnekleri `frontend/test-results/` içinde incelenebilir.
+Tarayıcı iptal senaryosu isteği gönderilmeden bekletip iptal eder. Çalışan SQLite işinin gerçekten durması ayrı backend testinde gerçek sorguyla doğrulanır; tarayıcı senaryosu tek başına çalışan sorgunun TCP kopmasıyla kesildiği iddiası değildir.
 
-Uygulama `./scripts/start.sh` ile tek yerel portta açılır. Script bağımlılıkları kontrol eder, arayüzü derler ve Uvicorn'a geçer. Bu ortamda bash sözdizimi, eksik bağımlılık mesajı, derleme ve Uvicorn startup doğrulandı; başarılı TCP dinlemesi burada kanıtlanmadı.
+TestClient'ın httpx için verdiği deprecation uyarısı kalıyor; testlerde hata veya atlama yok. Önceki kısıtlı ortamda thread uyanması kaybolduğu için test event loop'larında küçük bir zamanlayıcı kullanılır; ürün akışı ve gerçek HTTP/SQLite çalışması değiştirilmez. Kullanıcının izin değişikliği sonrası yerel sunucu ve Chromium burada çalıştırılabildi.
 
-Yeni kayıt regresyonları önce başarısız oldu: yüklenen dosyada yanlış öğrenci tablosu örneği ve anahtarsız tabloda geçersiz örnek önerisi. Düzeltme sonrası kendi dosyasından seçilen sorgu gerçek SQLGlot/SQLite ile geçti. Gerçek HTTP yükleme/kopya/temizlik ve 10 MB sınırı testleri de başarılı.
-
-Kullanıcı araştırması yapılmadı. UC-08 karşılaştırma ve UC-09 dışa aktarma, belgeye göre isteğe bağlıdır ve çekirdek tarayıcıda doğrulanmadan eklenmedi. Doğal dil desteği sonraki aşamadır.
-
-## İsteklerin çakışmasını önleme
-
-Arayüzde bütün ağ işlemleri aynı anda yalnız bir işlem kabul eden ref ile korunur. Sorgu sırasında kaynak tablo sekmesi de pasiftir. AbortController yalnız kabul edilen sorguya aittir; ikinci bir çağrı mevcut iptal bağlantısını silemez. Bu, eski veritabanının açıklamasının yeni bağlamla karışmasını önler.
-
-Ek tarayıcı senaryosu, ikinci açıklama isteğini gönderilmeden tutup iptal eder; eski sonuç/SQL'in korunmasını ve tablo gezintisinin engellenmesini kontrol eder. Bu test frontend iptalini sınar; çalışan SQLite worker'ının kesilmesi ayrı gerçek backend testleriyle doğrulanır. Frontend iptal senaryosu gerçek Chromium koşusunda geçti. Son URI tablo-adı düzeltmesinden sonra üretim build'i ve altı testin keşfi başarılı; güncel tam browser koşusu bekliyor.
-
-## Gerçek Chromium koşusu ve son inceleme
-
-- Kullanıcının normal terminalindeki 3 Kasım 20:34 koşusu: 54 backend testi geçti, üretim build geçti, 6 Chromium senaryosundan 5 geçti. Ana demo testinin 23. satırındaki 60 seçimi `<dt>60</dt>` ve `<dd>60</dd>` arasında belirsizdi; hücre değeri artık `definition` rolüyle seçiliyor. Bu, gözlenen başarısız testin düzeltmesidir; yeniden koşulmadan geçtiği iddia edilmiyor.
-- Gerçek dosya yükleme ekran görüntüsü görsel olarak incelendi: sonuç ve kaynak kartındaki Notebook/8 verileri okunabilir ve tutarlı. Sonraki test koşusu geçici test-results dizinini temizledi; görüntünün incelendiği, arşivde hâlâ bulunduğu anlamına gelmez.
-- Bağımsız kod incelemesinde geçerli `sales/2026` tablo adının gezintide 404 üretmesi doğrulandı. Ürün bir SQLite görüntüleyicisi olduğundan bu bulgu rutin geçerli girdiyi bozması nedeniyle düzeltildi. Ad query parametresinde taşınır; eski yol da slash adlarını kabul eder. `sales/2026`, `.`, `..`, `orders?new#2026` için dört gerçek HTTP testi önce 404 ile başarısız oldu, düzeltme sonrası geçti. Son suite: 58 başarılı, atlama yok.
-- README'deki geliştirme reload komutu açık Uvicorn komutuyla düzeltildi; start.sh'nin argüman almadığı netleştirildi.
-- Ajanın kendi verify.sh koşusu yine backend/build aşamalarını geçti ve TCP bind engelinde durdu. Uygun resmi yol olan sandbox dışı Chromium çalıştırma isteği de otomatik politika tarafından reddedildi: sandbox_approval=false. Kısıtı değiştirebilecek ayrı bir izin aracı mevcut tool envanterinde yok.
+Kullanıcı araştırması yapılmadı ve eğitim başarısında ölçülmüş bir artış iddia edilmiyor. Doğal dil → SQL, UC-08 karşılaştırma ve UC-09 rapor dışa aktarma uygulanmadı; bunlar ilk çekirdek sürümün dışında kalan sonraki çalışmalardır.

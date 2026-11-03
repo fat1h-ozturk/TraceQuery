@@ -18,22 +18,28 @@ Yazma girişimi; NULL karşılaştırmaları; tekrar değerler; self JOIN takma 
 ## Task 1: Motor ve API
 Files: backend/tracequery/engine.py, app.py; backend/tests/test_tracequery.py.
 Interface: inspect_database(path), explain(path, sql); POST /api/demo, /api/databases, /api/explain; GET /api/schema/{id}, /api/table/{id}/{table}.
-- [ ] Gerçek SQLite fixture ile kaynak kimliği, JOIN, filtre, NULL, tekrar, sınır ve yazma reddi testlerini yaz; RED çalıştır.
+- [x] Gerçek SQLite fixture ile kaynak kimliği, JOIN, filtre, NULL, tekrar, sınır ve yazma reddi testlerini yaz; RED çalıştır.
 - [x] Motor ve API'yi uygula; pytest tamamını çalıştır.
 
 ## Task 2: Arayüz
 Files: frontend/src/App.tsx, style.css, main.tsx; package.json, vite.config.ts.
-- [ ] Demo/açma, tablo gezinme, SQL çalıştırma, aşamalar, kaynak vurgulama ve hata durumlarını bağla.
-- [ ] TypeScript kontrolü ve üretim derlemesi; gerçek API ile demo akışını doğrula.
+- [x] Demo/açma, tablo gezinme, SQL çalıştırma, aşamalar, kaynak vurgulama ve hata durumlarını bağla.
+- [x] TypeScript kontrolü ve üretim derlemesi; gerçek API ile demo akışını doğrula.
 
 ## Task 3: Teslim
-Files: README.md, .gitignore, scripts/dev.sh.
+Files: README.md, .gitignore, scripts/start.sh, scripts/verify.sh.
 - [x] Çalıştırma yönergesi ve destek sınırlarını yaz.
-- [ ] Bağımsız kod incelemesi ve gerekli düzeltmeler; son pytest/build.
+- [x] Bağımsız kod incelemesi ve gerekli düzeltmeler; son pytest/build.
 
 ## Decisions / Progress
 - Kullanıcının doğrudan başlama isteğiyle mevcut repoda ayrı geliştirme dalı kullanıldı; başka worktree oluşturulmadı.
 - Bu başlangıç tüm altı haftalık ürünü tamamladığı iddiası taşımaz; kapsam dışı SQL açıkça reddedilir.
+
+## Güncel sonuç (3 Kasım 2026)
+- İlk yerel sürümün bütün plan görevleri doğrulandı. `./scripts/verify.sh`: 58 backend testi + üretim derlemesi + 8 gerçek Chromium senaryosu başarılı, çıkış kodu 0.
+- `scripts/start.sh` ile açılan canlı sunucuda ana HTML, iki asset ve demo/explain akışı HTTP üzerinden kontrol edildi.
+- Kod mevcut `feat/tracequery-start` dalında commitlenir. Kullanıcının gereksiz onay istememe talebi doğrultusunda ek merge/PR kararı istenmez ve dal yerinde tutulur.
+- Aşağıdaki kayıtlar gelişimin tarihçesidir; eski ağ/izin engelleri güncel engel değildir. Güncel kabul kanıtları docs/VERIFICATION.md içindedir.
 
 ## Uygulama kaydı
 - Backend motoru/API ve React arayüzü yazıldı; mevcut kullanım senaryoları repo içine kopyalandı.
@@ -101,3 +107,10 @@ Files: README.md, .gitignore, scripts/dev.sh.
 - Final: Ruling: Tablo adının URI yolu olarak kaybı rutin geçerli SQLite girdisini bozuyor — query parametresiyle ve eski yolu koruyarak düzeltildi; dört gerçek HTTP testinde RED→GREEN. Yanlışsa istemci API uyumluluğu riski var; eski yol testle korunuyor.
 - Güncel 58 backend testi geçti; TS/Vite build ve altı browser testinin keşfi başarılı. Browser yükleme varyantı boşluk/slash içeren tabloyu açıp gezmeyi de kontrol eder.
 - Sandbox dışı browser testi için resmi yetki yükseltme isteği otomatik politika tarafından reddedildi. Geniş erişim verme veya kısıtı dolanma yapılmadı. Kullanıcının gerekli olmadıkça kendisinden işlem istememe tercihi doğrultusunda istek tekrar edilmedi.
+
+### İlk yerel sürümün tamamlanması
+- İzinler kullanıcı tarafından değiştirildi; yerel sunucu ve gerçek Chromium testleri bu oturumda çalıştırılabildi.
+- İkinci Chromium belirsiz seçici (tablo gezintisi ile aynı adlı kaynak rolü) sol gezintiye daraltılarak giderildi. İlk altı senaryo geçti.
+- Aynı değerli iki sonuçtan farklı kaynaklara gitme, JOIN ara tablosu, sonraki JOIN'de kısmi kayıp ve anahtarsız tablo için iki ek gerçek tarayıcı senaryosu geçti. Toplam 58 backend + 8 Chromium testi başarılı; build başarılı.
+- Demo FALSE/UNKNOWN ve kısmi JOIN ekranları görsel olarak incelendi. Canlı uygulama 127.0.0.1:8000 üzerinde açıldı; HTML/asset/demo/explain HTTP kontrolleri geçti.
+- Sonuç: SQLite çekirdek MVP hazır. Doğal dil, karşılaştırma, dışa aktarma ve kullanıcı pilotu sonraki kapsamdır; yapılmış gibi sunulmaz.

@@ -68,7 +68,7 @@ Bu yerel uygulamayı genel internete açmayın: kimlik doğrulama, çok kullanı
 
 Kurulum sonrası **58 backend testi atlama olmadan geçti**: SQLite motoru, gerçek SQLGlot ayrıştırıcısı ve FastAPI TestClient akışı. TypeScript kontrolü ve Vite üretim derlemesi başarılı. Gerçek dosya yükleme, salt okunur kopya, geçersiz/büyük dosya reddi ve geçici dosyaların temizliği HTTP testlerinde kontrol edildi.
 
-Kullanıcının terminalindeki gerçek Chromium koşusunda altı senaryonun beşi geçti. Bir senaryo, aynı 60 değerinin hem koşul etiketi hem hücre değeri olarak görünmesi nedeniyle testte belirsiz seçime takıldı. Seçici düzeltildi; son değişikliklerle tam Chromium koşusu bekliyor. Bu ajan oturumunda yerel TCP sunucusu açma ve sandbox dışı çalıştırma izni engellendiği için bu kontrol burada tamamlanamadı. Güncel kanıtlar [docs/VERIFICATION.md](docs/VERIFICATION.md) içinde.
+**8 gerçek Chromium testi de geçti.** Üretim arayüzü, gerçek SQLite dosya yükleme/gezinme, aynı görünen sonuçların ayrı kaynakları, JOIN/WHERE elenmesi, NULL ayrımı, kısmi katılım, anahtarsız tablo ve iptal sonrası önceki sonucun korunması doğrulandı. Güncel kanıtlar [docs/VERIFICATION.md](docs/VERIFICATION.md) içinde.
 
 ## Tarayıcı doğrulaması
 
@@ -81,13 +81,13 @@ cd ..
 ./scripts/verify.sh
 ```
 
-Playwright üretim derlemesini sunan backend sunucusunu başlatır; 8000 portu boş olmalı. Önceden `start.sh` ile açılan sunucuyu Ctrl+C ile kapatın. Testler gerçek API üzerinden demo, kaynak hücreleri, JOIN'de elenme, FALSE/UNKNOWN ayrımı, yazma reddi ve şema ilişkilerini inceler. Gerçek SQLite yükleme senaryosu, düzenlenmiş SQL ile önceki sonucun ayrımı ve bekleyen isteği iptal ederken son başarılı sonucun korunması da sınanır. Doğrulama çıktısı `.artifacts/verification/latest.log` dosyasına kaydedilir. Ekran görüntüleri ve başarısız koşu izleri `frontend/test-results/` altında oluşur. Test dosyalarının hazırlanmış olması çalıştırıldıkları anlamına gelmez.
+Playwright üretim derlemesini sunan backend sunucusunu başlatır; 8000 portu boş olmalı. Önceden `start.sh` ile açılan sunucuyu Ctrl+C ile kapatın. Testler gerçek API üzerinden demo, kaynak hücreleri, JOIN'de elenme, FALSE/UNKNOWN ayrımı, yazma reddi ve şema ilişkilerini inceler. Gerçek SQLite yükleme senaryosu, düzenlenmiş SQL ile önceki sonucun ayrımı, aynı değerli satırların ayrı kaynakları, çoklu JOIN'de kısmi kayıp, anahtarsız tablo uyarısı ve bekleyen isteğin iptali de sınanır. Doğrulama çıktısı `.artifacts/verification/latest.log` dosyasına kaydedilir. Ekran görüntüleri ve başarısız koşu izleri `frontend/test-results/` altında oluşur. Güncel doğrulama: 58 backend testi ve 8 Chromium senaryosu başarılı; TypeScript/Vite derlemesi başarılı.
 
 Kaynak kartları gerçek sütun değerlerini, filtre açıklamaları karşılaştırılan değerleri gösterir. Anahtarın generated sütunların yanında bulunması da çekirdek regresyon testiyle kontrol edilir. Çalışma alanındaki kaynak numaraları kaynak birleşimleridir; kişi sayısı olarak yorumlanmamalıdır.
 
 WHERE ve ON içinde gerçek kaynak sütunlarını kullanın; SELECT ile tanımlanmış sütun takma adını bu koşullarda kullanmak ilk sürüm kapsamında değildir.
 
-Sorgu çalışırken **İptal et** düğmesi HTTP isteğini keser. Backend bağlantı kopmasını algılayarak iptal olayını SQLite progress handler'a iletir; önceki başarılı açıklama korunur. Çekirdek iptal ve bağlantı-kopması orkestrasyonu gerçek SQLite testleriyle doğrulandı. Tarayıcıdan backend'e bütün iptal hattı henüz çalıştırılmadı.
+Sorgu çalışırken **İptal et** düğmesi HTTP isteğini keser. Backend bağlantı kopmasını algılayarak iptal olayını SQLite progress handler'a iletir; önceki başarılı açıklama korunur. Çekirdek iptal ve bağlantı-kopması orkestrasyonu gerçek SQLite testleriyle doğrulandı. Tarayıcı testi bekleyen HTTP isteğini iptal eder ve önceki sonucu kontrol eder; çalışan SQLite işinin kesilmesi ayrı backend testinde gerçek sorguyla doğrulanır.
 
 Sonuç veya WHERE aşamasından seçilen satırda filtre koşulları ve karşılaştırılan değerler gösterilir. Örneğin Ali'nin aynı isimli iki sonuç satırında notlar ayrı ayrı 80 ve 75 olarak izlenir; açıklama görünen değerler yerine kaynak kimlikleriyle eşleştirilir.
 

@@ -1,8 +1,8 @@
-# SQL İzleyici — Kısa Proje Özeti
+# TraceQuery — Kısa Proje Özeti
 
 ## Proje nedir?
 
-SQL İzleyici, bir SQL sorgusunun sonucunun nasıl oluştuğunu gerçek kayıtlar üzerinden açıklayan bir veritabanı görüntüleyicisidir. Kullanıcı bir SQLite dosyasını açar, sorgusunu çalıştırır ve sonuç satırlarının hangi kaynak kayıtlardan geldiğini görebilir. Sorgudaki JOIN ve WHERE işlemlerinin kayıtlar üzerindeki etkisini inceleyebilir.
+TraceQuery, bir SQL sorgusunun sonucunun nasıl oluştuğunu gerçek kayıtlar üzerinden açıklayan bir veritabanı görüntüleyicisidir. Kullanıcı bir SQLite dosyasını açar, sorgusunu çalıştırır ve sonuç satırlarının hangi kaynak kayıtlardan geldiğini görebilir. Sorgudaki JOIN ve WHERE işlemlerinin kayıtlar üzerindeki etkisini inceleyebilir.
 
 ## Hangi problemi çözer?
 
@@ -25,7 +25,7 @@ Bir okul veritabanında üç öğrenci olsun:
 | Ali | Matematik | 80 |
 | Ali | Fizik | 75 |
 
-SQL İzleyici bu sonucu şöyle açıklar:
+TraceQuery bu sonucu şöyle açıklar:
 
 - **Ali neden iki kez çıktı?** İki farklı ders kaydıyla eşleştiği için her eşleşme ayrı bir sonuç satırı oluşturdu.
 - **Ayşe neden yok?** Ders kaydıyla eşleşti, fakat notu 45 olduğu için `not >= 60` filtresinde elendi.
@@ -39,4 +39,4 @@ Kullanıcı Ali'nin Matematik satırını seçtiğinde, bu satırı oluşturan �
 
 Akademik araştırma sorusu: **Kaynak kayıtları ve elenme nedenlerini gösteren bir arayüz, yalnız sonuç tablosu gösteren arayüze göre SQL sonuçlarını daha doğru ve daha hızlı anlamayı sağlıyor mu?** Bu, öğrencilere verilen sorgu anlama görevlerindeki doğruluk ve süreyle değerlendirilebilir.
 
-Bu dosya geliştirilecek projenin özetidir; özelliklerin henüz uygulanmış olduğu anlamına gelmez.
+İlk yerel sürüm uygulanmış ve uçtan uca sınanmıştır. Güncel kurulum için [README](../../README.md), ölçütler ve test kanıtları için [doğrulama kaydı](../VERIFICATION.md) kullanılmalıdır. Kullanıcı araştırması henüz yapılmamıştır.

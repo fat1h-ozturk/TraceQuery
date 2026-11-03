@@ -5,6 +5,7 @@ from pathlib import Path
 import sqlite3
 import math
 import time
+import uuid
 
 class QueryError(ValueError):
     pass
@@ -280,6 +281,7 @@ def execute_plan(path, plan, max_rows=1000, cancel=None):
                                  'record':source_records[a][identity],
                                  'first_missing_stage':next((i for i,count in enumerate(counts) if count==0),None),
                                  'contributions':result_counts[a][identity]})
-        return {'sql':plan['sql'],'stages':stages,'result':result,'excluded':excluded,
+        return {'id':uuid.uuid4().hex,'status':'complete','sql':plan['sql'],
+                'stages':stages,'result':result,'excluded':excluded,
                 'join_excluded':join_excluded,'outcomes':outcomes,
                 'notice':'Aşamalar mantıksal açıklamadır; SQLite fiziksel yürütme planı değildir.'}

@@ -87,6 +87,17 @@ class CoreTests(unittest.TestCase):
         self.assertFalse(any(branch['sources'].get('e')==101 for branch in result['join_excluded']))
         self.assertFalse(any(branch['sources'].get('e')==102 for branch in result['excluded']))
 
+    def test_each_completed_explanation_has_its_own_session_identity(self):
+        from tracequery.engine import execute_plan
+        first=execute_plan(self.path,self.plan)
+        second=execute_plan(self.path,self.plan)
+        self.assertEqual(first['status'],'complete')
+        self.assertEqual(second['status'],'complete')
+        self.assertRegex(first['id'],r'^[0-9a-f]{32}$')
+        self.assertNotEqual(first['id'],second['id'])
+        self.assertEqual(first['sql'],self.plan['sql'])
+        self.assertEqual(first['result'],second['result'])
+
     def test_case_insensitive_sqlite_table_names(self):
         from tracequery.engine import execute_plan
         p={**self.plan,'tables':[('STUDENTS','s'),('ENROLLMENTS','e')]}

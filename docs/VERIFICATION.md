@@ -70,3 +70,9 @@ Bağımsız ikinci inceleme, kaynak kayıt/filtre payloadları ve frontend tiple
 - Gerçek SQLite örneğinde Ali'nin 101 numaralı kaydı sonuçta kalırken 102 numaralı kaydı eksik ders eşleşmesi nedeniyle JOIN 2'de elendi. Ali'nin katkısı 1, aşama sayıları 1/2/1/1; tamamen elendiği söylenmiyor. Mehmet için JOIN 1 kaybı da ayrı tutuldu. Test önce eksik alan nedeniyle başarısız oldu, uygulama sonrası geçti.
 - Son koşu: 22 çekirdek + 2 orkestrasyon testi başarılı, 2 modül bağımlılık yokluğuyla atlandı. Python compileall ve diff kontrolü başarılı. UI/HTTP beklentileri güncellendi; çalıştırılmış sayılmıyor.
 - Paket ağını yeniden kontrol: PyPI ve npm alan adları çözülemiyor; tam entegrasyon engeli sürüyor.
+
+## Açıklama oturumu ve SQL bağlamı
+
+- UC-03 için başarılı açıklama `id`, `status: complete` ve kullanılan SQL'i taşır. Her gerçek koşu farklı kimlik üretir; aynı sorgunun kaynak sonuçları değişmez.
+- Oturum testi önce eksik `status` alanıyla başarısız oldu, uygulama sonrası geçti. Son koşu: 23 çekirdek + 2 orkestrasyon testi başarılı; 2 bağımlılık modülü atlandı.
+- Arayüzde mevcut açıklamanın SQL'i ayrı açılabilir bölümde gösterilir. Düzenleyici değişikliğiyle eski sonuçların sorgusu karışmaz. Bu davranış için Playwright testi hazırlandı; paket engeli nedeniyle koşulmadı.

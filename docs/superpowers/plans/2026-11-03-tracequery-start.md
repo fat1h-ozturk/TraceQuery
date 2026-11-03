@@ -68,3 +68,7 @@ Files: README.md, .gitignore, scripts/dev.sh.
 - UC-07 zorunlu kısmi katılım örneğinde eksik kalan JOIN dalı açıkça kaydedilip gösteriliyor. Yeni açıklama, kaynak kişinin diğer dalının sonuç katkısını silmez.
 - Gerçek SQLite testi RED→GREEN: Ali 1 sonuçta kalıyor, 102 kaydı JOIN 2'de eleniyor, Mehmet JOIN 1'de eşleşmiyor. Son koşu 24 başarılı, 2 bağımlılık modülü skip.
 - PyPI/npm DNS erişimi hâlâ yok; tam doğrulama bekliyor.
+
+### Açıklama kimliği ve kullanılan SQL
+- UC-03 başarılı oturuma benzersiz kimlik ve tamamlanma durumu eklendi; UI son başarılı sorguyu ayrıca gösterir. Test RED→GREEN. 25 test başarılı, 2 bağımlılık modülü skip.
+- Düzenlenmiş SQL ile eski sonucun karıştırılmaması için gerçek API kullanan ek browser senaryosu hazırlandı; henüz çalıştırılmadı.

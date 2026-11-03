@@ -12,12 +12,12 @@ with sqlite3.connect(sys.argv[1]) as db:
 
 test.beforeEach(async({page})=>{
  await page.goto('/');
- await page.getByRole('button',{name:'Örnek veritabanıyla başla'}).click();
+ await page.getByRole('button',{name:'Demo aç'}).click();
  await expect(page.getByText('Öğrenci veritabanı',{exact:true})).toBeVisible();
 });
 
 test('actual demo shows source values, missing JOIN records and FALSE versus UNKNOWN',async({page},testInfo)=>{
- await page.getByRole('button',{name:'Çalıştır ve açıkla'}).click();
+ await page.getByRole('button',{name:'Çalıştır'}).click();
  const table=page.getByRole('table',{name:'Sorgu sonucu'});
  await expect(table.getByRole('row')).toHaveCount(3);
  await table.getByRole('button',{name:'1. satırın kaynaklarını göster',exact:true}).click();
@@ -25,7 +25,7 @@ test('actual demo shows source values, missing JOIN records and FALSE versus UNK
  await expect(sources.getByText('Ali',{exact:true})).toBeVisible();
  await expect(sources.getByText('Matematik',{exact:true})).toBeVisible();
  await expect(sources.locator('.record-values').getByText('80',{exact:true})).toBeVisible();
- await expect(sources.getByRole('heading',{name:'WHERE koşulları nasıl geçti?'})).toBeVisible();
+ await expect(sources.getByRole('heading',{name:'Filtreler'})).toBeVisible();
  await expect(sources.locator('.filter-check').getByText('TRUE',{exact:true})).toBeVisible();
  await expect(sources.locator('.filter-check').getByText('80',{exact:true})).toBeVisible();
  await expect(sources.locator('.filter-check').getByRole('definition').filter({hasText:/^60$/})).toBeVisible();
@@ -43,7 +43,7 @@ test('actual demo shows source values, missing JOIN records and FALSE versus UNK
 
 test('unsupported write reports an error and leaves source students intact',async({page})=>{
  await page.getByLabel('SQL sorgusu',{exact:true}).fill('DELETE FROM ogrenciler');
- await page.getByRole('button',{name:'Çalıştır ve açıkla'}).click();
+ await page.getByRole('button',{name:'Çalıştır'}).click();
  await expect(page.getByRole('alert')).toContainText('SELECT');
  await page.getByRole('button',{name:/ogrenciler/}).click();
  await expect(page.getByText('Mehmet',{exact:true})).toBeVisible();
@@ -55,20 +55,22 @@ test('schema exposes real foreign keys and an empty query stays a successful exp
  await page.getByText('Tablo yapısı',{exact:false}).click();
  await expect(page.locator('.foreign-keys')).toContainText('ogrenciler.id');
  await page.getByLabel('SQL sorgusu',{exact:true}).fill('SELECT o.ad FROM ogrenciler o WHERE o.id > 100');
- await page.getByRole('button',{name:'Çalıştır ve açıkla'}).click();
+ await page.getByRole('button',{name:'Çalıştır'}).click();
  await expect(page.getByRole('alert')).toHaveCount(0);
  await expect(page.getByRole('table',{name:'Sorgu sonucu'}).getByRole('row')).toHaveCount(1);
- await expect(page.getByText('Bu aşamada kayıt yok.',{exact:false})).toBeVisible();
+ await expect(page.getByText('Sonuç yok.',{exact:false})).toBeVisible();
 });
 
 test('editing SQL preserves the query attached to the last successful explanation',async({page})=>{
- await page.getByRole('button',{name:'Çalıştır ve açıkla'}).click();
+ await page.getByRole('button',{name:'Çalıştır'}).click();
  await expect(page.getByRole('table',{name:'Sorgu sonucu'}).getByRole('row')).toHaveCount(3);
  await page.getByLabel('SQL sorgusu',{exact:true}).fill('SELECT o.ad FROM ogrenciler o WHERE o.id > 100');
- await page.getByText('Son çalıştırılan sorgu',{exact:true}).click();
+ await page.getByText('Çalıştırılan sorgu',{exact:true}).click();
  await expect(page.locator('.executed-query code')).toContainText('WHERE k.notu >= 60');
- await page.getByRole('button',{name:'Çalıştır ve açıkla'}).click();
+ await expect(page.getByText('Sonuçlar önceki sorguya ait.',{exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Çalıştır'}).click();
  await expect(page.locator('.executed-query code')).toContainText('WHERE o.id > 100');
+ await expect(page.getByText('Sonuçlar önceki sorguya ait.',{exact:true})).toHaveCount(0);
  await expect(page.getByRole('table',{name:'Sorgu sonucu'}).getByRole('row')).toHaveCount(1);
 });
 
@@ -77,13 +79,13 @@ test('a real uploaded SQLite file gets a valid query and keeps its original byte
  databaseFixture(databasePath,`CREATE TABLE "order items/2026"(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER);
  INSERT INTO "order items/2026" VALUES(1,'Notebook',8);`);
  const original=readFileSync(databasePath);
- await page.getByRole('button',{name:'Çalıştır ve açıkla'}).click();
+ await page.getByRole('button',{name:'Çalıştır'}).click();
  await expect(page.getByRole('table',{name:'Sorgu sonucu'}).getByRole('row')).toHaveCount(3);
  await page.locator('input[type="file"]').setInputFiles(databasePath);
  await expect(page.getByText('inventory.db',{exact:true})).toBeVisible();
  await expect(page.getByLabel('SQL sorgusu',{exact:true})).toHaveValue('SELECT * FROM "order items/2026"');
  await expect(page.getByRole('table',{name:'Sorgu sonucu'})).toHaveCount(0);
- await page.getByRole('button',{name:'Çalıştır ve açıkla'}).click();
+ await page.getByRole('button',{name:'Çalıştır'}).click();
  const table=page.getByRole('table',{name:'Sorgu sonucu'});
  await expect(table.getByRole('row')).toHaveCount(2);
  await expect(table.getByRole('cell',{name:'Notebook',exact:true})).toBeVisible();
@@ -96,7 +98,7 @@ test('a real uploaded SQLite file gets a valid query and keeps its original byte
 });
 
 test('cancelling a pending query preserves its previous result and blocks table browsing',async({page})=>{
- await page.getByRole('button',{name:'Çalıştır ve açıkla'}).click();
+ await page.getByRole('button',{name:'Çalıştır'}).click();
  const table=page.getByRole('table',{name:'Sorgu sonucu'});
  await expect(table.getByRole('row')).toHaveCount(3);
  let release:()=>void=()=>{};
@@ -108,14 +110,14 @@ test('cancelling a pending query preserves its previous result and blocks table 
  });
  try {
   await page.getByLabel('SQL sorgusu',{exact:true}).fill('SELECT o.ad FROM ogrenciler o WHERE o.id > 100');
-  await page.getByRole('button',{name:'Çalıştır ve açıkla'}).click();
+  await page.getByRole('button',{name:'Çalıştır'}).click();
   await expect(page.getByRole('button',{name:'İptal et',exact:true})).toBeVisible();
   await expect(page.getByRole('button',{name:'Kaynak tablolar',exact:true})).toBeDisabled();
   await page.getByRole('button',{name:'İptal et',exact:true}).click();
   await expect(page.getByRole('alert')).toContainText('iptal edildi');
   await expect(table.getByRole('row')).toHaveCount(3);
-  await expect(page.getByRole('button',{name:'Çalıştır ve açıkla'})).toBeEnabled();
-  await page.getByText('Son çalıştırılan sorgu',{exact:true}).click();
+  await expect(page.getByRole('button',{name:'Çalıştır'})).toBeEnabled();
+  await page.getByText('Çalıştırılan sorgu',{exact:true}).click();
   await expect(page.locator('.executed-query code')).toContainText('WHERE k.notu >= 60');
  } finally {
   release();
@@ -134,7 +136,7 @@ test('identical results preserve source identities and later JOIN losses stay pa
  await page.locator('input[type="file"]').setInputFiles(path);
  await expect(page.getByText('partial.db',{exact:true})).toBeVisible();
  await page.getByLabel('SQL sorgusu',{exact:true}).fill('SELECT s.name FROM students s JOIN enrollments e ON s.id = e.student_id WHERE e.grade >= 60');
- await page.getByRole('button',{name:'Çalıştır ve açıkla'}).click();
+ await page.getByRole('button',{name:'Çalıştır'}).click();
  const table=page.getByRole('table',{name:'Sorgu sonucu'});
  await expect(table.getByRole('cell',{name:'Ali',exact:true})).toHaveCount(2);
  const sources=page.getByRole('complementary',{name:'Kaynak izi'});
@@ -151,9 +153,9 @@ test('identical results preserve source identities and later JOIN losses stay pa
  await page.locator('.stage-flow').getByRole('button',{name:/JOIN 1/}).click();
  await expect(page.getByRole('table',{name:'JOIN 1',exact:true}).getByRole('row')).toHaveCount(3);
  await page.getByRole('table',{name:'JOIN 1',exact:true}).getByRole('button',{name:'1. satırın kaynaklarını göster',exact:true}).click();
- await expect(sources.getByRole('heading',{name:'WHERE koşulları nasıl geçti?'})).toHaveCount(0);
+ await expect(sources.getByRole('heading',{name:'Filtreler'})).toHaveCount(0);
  await page.getByLabel('SQL sorgusu',{exact:true}).fill('SELECT s.name FROM students s JOIN enrollments e ON s.id = e.student_id JOIN courses c ON c.id = e.course_id WHERE e.grade >= 60');
- await page.getByRole('button',{name:'Çalıştır ve açıkla'}).click();
+ await page.getByRole('button',{name:'Çalıştır'}).click();
  await expect(table.getByRole('row')).toHaveCount(2);
  const ali=page.locator('.outcomes').getByRole('button',{name:/s · #1.*Ali/});
  await expect(ali).toContainText('1 sonuç');
@@ -170,10 +172,18 @@ test('a table without a primary key stays browsable and explains its limitation'
  await page.locator('input[type="file"]').setInputFiles(path);
  await expect(page.getByText('no-key.db',{exact:true})).toBeVisible();
  await expect(page.getByLabel('SQL sorgusu',{exact:true})).toHaveValue('');
- await expect(page.getByRole('button',{name:'Çalıştır ve açıkla'})).toBeDisabled();
- await expect(page.getByText('Bu veritabanında açıklama için uygun INTEGER PRIMARY KEY bulunamadı.',{exact:false})).toBeVisible();
+ await expect(page.getByRole('button',{name:'Çalıştır'})).toBeDisabled();
+ await expect(page.getByText('Kaynak izleme için INTEGER PRIMARY KEY gerekli.',{exact:false})).toBeVisible();
  await page.locator('.sidebar').getByRole('button',{name:/notes/}).click();
  await expect(page.getByRole('cell',{name:'Readable',exact:true})).toBeVisible();
  await page.getByText('Tablo yapısı',{exact:false}).click();
  await expect(page.locator('.schema-warning')).toContainText('INTEGER PRIMARY KEY gerekli');
+});
+
+test('initial workspace stays focused on opening a database',async({page})=>{
+ await page.reload();
+ await expect(page.getByRole('heading',{name:'Veritabanı aç',exact:true})).toBeVisible();
+ await expect(page.getByLabel('SQL sorgusu',{exact:true})).toHaveCount(0);
+ await expect(page.getByText('Sonucun izini sür.',{exact:true})).toHaveCount(0);
+ await expect(page.getByText('Bir sonuçtan daha fazlasını gör.',{exact:true})).toHaveCount(0);
 });

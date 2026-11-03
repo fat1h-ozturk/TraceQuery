@@ -17,7 +17,7 @@ cd ..
 
 `start.sh` arayüzü derleyip yerel sunucuyu açar; kapatmak için Ctrl+C kullanın. Sonraki başlatmalar için yalnız `./scripts/start.sh` yeterlidir.
 
-Tarayıcıda **http://127.0.0.1:8000** açılır. “Örnek veritabanıyla başla” → “Çalıştır ve açıkla” → bir sonuç satırının numarası → kaynaklar. Kayıtların yolculuğundan JOIN'de kaybolan Mehmet ve WHERE'de elenen Ayşe incelenebilir. NULL filtre sonucu UNKNOWN olarak ayrılır.
+Tarayıcıda **http://127.0.0.1:8000** açılır. “Demo aç” → “Çalıştır” → bir sonuç satırının numarası → kaynaklar. Kayıtların yolculuğundan JOIN'de kaybolan Mehmet ve WHERE'de elenen Ayşe incelenebilir. NULL filtre sonucu UNKNOWN olarak ayrılır.
 
 Geliştirmede iki terminal kullanın. Backend:
 
@@ -68,7 +68,7 @@ Bu yerel uygulamayı genel internete açmayın: kimlik doğrulama, çok kullanı
 
 Kurulum sonrası **58 backend testi atlama olmadan geçti**: SQLite motoru, gerçek SQLGlot ayrıştırıcısı ve FastAPI TestClient akışı. TypeScript kontrolü ve Vite üretim derlemesi başarılı. Gerçek dosya yükleme, salt okunur kopya, geçersiz/büyük dosya reddi ve geçici dosyaların temizliği HTTP testlerinde kontrol edildi.
 
-**8 gerçek Chromium testi de geçti.** Üretim arayüzü, gerçek SQLite dosya yükleme/gezinme, aynı görünen sonuçların ayrı kaynakları, JOIN/WHERE elenmesi, NULL ayrımı, kısmi katılım, anahtarsız tablo ve iptal sonrası önceki sonucun korunması doğrulandı. Güncel kanıtlar [docs/VERIFICATION.md](docs/VERIFICATION.md) içinde.
+**9 gerçek Chromium testi de geçti.** Üretim arayüzü, gerçek SQLite dosya yükleme/gezinme, aynı görünen sonuçların ayrı kaynakları, JOIN/WHERE elenmesi, NULL ayrımı, kısmi katılım, anahtarsız tablo ve iptal sonrası önceki sonucun korunması doğrulandı. Güncel kanıtlar [docs/VERIFICATION.md](docs/VERIFICATION.md) içinde.
 
 ## Tarayıcı doğrulaması
 
@@ -81,7 +81,7 @@ cd ..
 ./scripts/verify.sh
 ```
 
-Playwright üretim derlemesini sunan backend sunucusunu başlatır; 8000 portu boş olmalı. Önceden `start.sh` ile açılan sunucuyu Ctrl+C ile kapatın. Testler gerçek API üzerinden demo, kaynak hücreleri, JOIN'de elenme, FALSE/UNKNOWN ayrımı, yazma reddi ve şema ilişkilerini inceler. Gerçek SQLite yükleme senaryosu, düzenlenmiş SQL ile önceki sonucun ayrımı, aynı değerli satırların ayrı kaynakları, çoklu JOIN'de kısmi kayıp, anahtarsız tablo uyarısı ve bekleyen isteğin iptali de sınanır. Doğrulama çıktısı `.artifacts/verification/latest.log` dosyasına kaydedilir. Ekran görüntüleri ve başarısız koşu izleri `frontend/test-results/` altında oluşur. Güncel doğrulama: 58 backend testi ve 8 Chromium senaryosu başarılı; TypeScript/Vite derlemesi başarılı.
+Playwright üretim derlemesini sunan backend sunucusunu başlatır; 8000 portu boş olmalı. Önceden `start.sh` ile açılan sunucuyu Ctrl+C ile kapatın. Testler gerçek API üzerinden demo, kaynak hücreleri, JOIN'de elenme, FALSE/UNKNOWN ayrımı, yazma reddi ve şema ilişkilerini inceler. Gerçek SQLite yükleme senaryosu, düzenlenmiş SQL ile önceki sonucun ayrımı, aynı değerli satırların ayrı kaynakları, çoklu JOIN'de kısmi kayıp, anahtarsız tablo uyarısı ve bekleyen isteğin iptali de sınanır. Doğrulama çıktısı `.artifacts/verification/latest.log` dosyasına kaydedilir. Ekran görüntüleri ve başarısız koşu izleri `frontend/test-results/` altında oluşur. Güncel doğrulama: 58 backend testi ve 9 Chromium senaryosu başarılı; TypeScript/Vite derlemesi başarılı.
 
 Kaynak kartları gerçek sütun değerlerini, filtre açıklamaları karşılaştırılan değerleri gösterir. Anahtarın generated sütunların yanında bulunması da çekirdek regresyon testiyle kontrol edilir. Çalışma alanındaki kaynak numaraları kaynak birleşimleridir; kişi sayısı olarak yorumlanmamalıdır.
 
@@ -93,10 +93,12 @@ Sonuç veya WHERE aşamasından seçilen satırda filtre koşulları ve karşıl
 
 Bir kaydın dalları farklı sonuçlanabilir: örneğin Ali'nin bir ders kaydı sonuçta kalırken diğerinin ders eşleşmesi bulunamayabilir. Kayıt yolculuğu, eşleşmeyen birleşimi kaybolduğu JOIN ve ON koşuluyla ayrı gösterir; Ali'nin kalan katkısı korunur.
 
-Her tamamlanan açıklama benzersiz bir oturum kimliği ve kullanılan SQL'i taşır. Düzenleyicideki metin sonradan değiştirilse bile “Son çalıştırılan sorgu” bölümünde mevcut sonuçları üreten SQL görüntülenir. Yeni koşu başarısız olursa önceki başarılı açıklama korunur.
+Her tamamlanan açıklama benzersiz bir oturum kimliği ve kullanılan SQL'i taşır. Düzenleyicideki metin sonradan değiştirilse bile “Çalıştırılan sorgu” bölümünde mevcut sonuçları üreten SQL görüntülenir. Yeni koşu başarısız olursa önceki başarılı açıklama korunur.
 
 Dosya yüklenince örnek sorgu, dosyadaki açıklanabilir bir tablodan otomatik seçilir; tablo adındaki boşluklar güvenle alıntılanır. Uygun INTEGER PRIMARY KEY yoksa dosya görüntülenebilir; açıklama sınırlaması gösterilir ve geçersiz örnek sorgu önerilmez.
 
-## Görsel tema
+## Arayüz
 
-Arayüz sıcak kömür zemin, krem metin, şeftali vurgular ve açık renkli kaynak panelleri kullanır. Başlıklardaki Instrument Serif projeyle birlikte sunulur; dış font servisine istek yapılmaz. Fontun SIL Open Font License dosyası `frontend/public/fonts/OFL.txt` içindedir.
+Çalışma alanı siyah-beyaz ve kompakt tutulur. İlk açılışta dosya veya demo seçilir; SQL editörü veritabanı açılınca görünür. Sonuç satırına tıklamak kaynaklarını gösterir. Açıklamalar ilgili kayıt veya durum seçildiğinde açılır; SQL değiştirilmişse önceki sonucun gösterildiği belirtilir.
+
+Geist yazı tipi projeyle birlikte sunulur; dış font servisine istek yapılmaz. SIL Open Font License dosyası `frontend/public/fonts/OFL.txt` içindedir.

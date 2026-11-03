@@ -6,9 +6,9 @@
 
 | Kontrol | Sonuç |
 |---|---|
-| Backend: SQLite motoru, SQLGlot, FastAPI, iptal orkestrasyonu | 58 başarılı, atlama yok |
+| Backend: SQLite motoru, SQLGlot, FastAPI, iptal orkestrasyonu | 59 başarılı, atlama yok |
 | TypeScript kontrolü ve Vite üretim derlemesi | Başarılı |
-| Gerçek Chromium + üretim HTTP sunucusu | 8 başarılı |
+| Gerçek Chromium + üretim HTTP sunucusu | 9 başarılı |
 | Python compileall, bash sözdizimi, git diff --check | Başarılı |
 | scripts/start.sh | Üretim arayüzünü derledi, 127.0.0.1:8000 üzerinde sunucu açtı |
 | Canlı sunucu kontrolü | Ana HTML ve iki derleme asset'i HTTP 200; demo/explain HTTP 200, tamamlanmış 2 sonuç |
@@ -27,6 +27,7 @@ Tam koşunun çıktısı `.artifacts/verification/latest.log` içindedir. Chromi
 6. İptal: bekleyen isteğin iptali, önceki sonuç/SQL'in korunması ve eşzamanlı tablo işleminin engellenmesi.
 7. Tekrarlı sonuç/kısmi kayıp: aynı görünen iki Ali satırının 101/80 ve 102/75 kaynaklarının korunması; JOIN ara sonucu; sonraki JOIN'de yalnız 102 dalının kaybı ve Ali'nin kalan katkısı.
 8. Anahtarsız tablo: veri okunur, uygun olmayan açıklama işlemi devre dışı kalır ve şema sınırlaması görünür.
+9. Sade başlangıç: ilk açılış dosya seçimine odaklanır; veritabanı yokken editör ve tanıtım sloganları gösterilmez.
 
 Demo FALSE/UNKNOWN ve kısmi JOIN ekran görüntüleri görsel olarak incelendi; kayıt değerleri, aşama sayıları ve elenme açıklamaları test beklentileriyle tutarlı.
 
@@ -56,7 +57,7 @@ Demo FALSE/UNKNOWN ve kısmi JOIN ekran görüntüleri görsel olarak incelendi;
 - Yüklenen dosyaya öğrenci sorgusu önerme hatası giderildi; dosyanın kendi PK'li tablosu seçilir. Uygun tablo yoksa geçersiz örnek sunulmaz.
 - Slash/nokta/soru işareti içeren tablo adlarının gezintisi query parametresiyle düzeltilip dört gerçek HTTP testiyle doğrulandı. Eski URI yolu da korunur.
 - İki Chromium seçici hatası, gerçek başarısız koşu ardından hedefi daraltılarak düzeltildi: 60 etiketinden hücre değeri ayrılır; tablo düğmesi sol gezintiyle sınırlandırılır.
-- README geliştirme komutu açık Uvicorn komutuyla güncellendi. Kullanıcının isteğiyle geliştirme dalı main ile fast-forward birleştirildi; main üzerinde 58 backend testi, 8 Chromium senaryosu ve üretim derlemesi tekrar geçti.
+- README geliştirme komutu açık Uvicorn komutuyla güncellendi. Kullanıcının isteğiyle geliştirme dalı main ile fast-forward birleştirildi; main üzerinde 58 backend testi, 9 Chromium senaryosu ve üretim derlemesi tekrar geçti.
 
 ## Sınırlar
 
@@ -68,10 +69,11 @@ TestClient'ın httpx için verdiği deprecation uyarısı kalıyor; testlerde ha
 
 Kullanıcı araştırması yapılmadı ve eğitim başarısında ölçülmüş bir artış iddia edilmiyor. Doğal dil → SQL, UC-08 karşılaştırma ve UC-09 rapor dışa aktarma uygulanmadı; bunlar ilk çekirdek sürümün dışında kalan sonraki çalışmalardır.
 
-## Sıcak koyu tema doğrulaması
+## Minimal arayüz doğrulaması
 
-Referans görsellere göre kömür/krem/şeftali paleti, serif başlıklar, ince kenarlıklar, oval düğmeler ve kâğıt görünümlü kaynak paneli uygulandı. SQL ve kaynak bilgileri için ayrı okunabilir metin stilleri korunur.
-
-- Instrument Serif, lisansıyla birlikte yerel asset olarak sunulur. Gerçek Chromium kontrolünde font yüklendi ve zemin beklenen `rgb(27, 25, 22)` değerini verdi.
-- 1440×1000 masaüstü ve 390×844 mobil görünümde yatay sayfa taşması yok; iki tam sayfa ekran görüntüsü görsel olarak incelendi. Görüntüler `.artifacts/theme/` içindedir.
-- Tema sonrası tam `./scripts/verify.sh` koşusu: 58 backend testi, TypeScript/Vite derlemesi ve 8 Chromium senaryosu başarılı.
+- Büyük başlıklar, tanıtım metinleri, tekrarlı açıklamalar ve dekoratif footer kaldırıldı. İlk görünüm yalnız dosya/demo açmayı sunar; editör veritabanı açılınca görünür.
+- Serif/şeftali tema yerine siyah-beyaz palet, yerel Geist fontu, kompakt kontroller ve kısa etiketler kullanılır. Eski Instrument Serif asset'i kaldırıldı; Geist lisansı eklendi.
+- İlk açılış için eklenen gerçek tarayıcı testi önce eski başlık nedeniyle başarısız oldu; yeni arayüzle geçti. Tüm 58 backend ve 9 Chromium testi, TypeScript/Vite derlemesi başarılı.
+- SQL metninin gönderildiği hâli ayrıca saklanır; sadece taslak değişirse önceki sonucun gösterildiği uyarılır. Normalleştirilmiş SQL'in satır sonları gereksiz uyarı oluşturmaz. Mevcut SQL bağlamı testi bu uyarının açılıp kapanmasını da doğrular.
+- Bağımsız incelemede iptal, istek sahipliği, sonuç bağlamı ve klavye erişiminde regresyon bulunmadı. Satır numarası düğmesinin klavye etkinleştirmesi satır seçimine iletilir; fareyle tüm satır seçilebilir.
+- 1440×900 masaüstü ve 390×844 mobilde ilk ekran ve sonuç görünümü kontrol edildi. Geist yüklendi, yatay taşma yok, normal sonuçta gereksiz taslak uyarısı yok; hücreye tıklamak kaynak panelini açtı. Dört ekran görüntüsü `.artifacts/minimal/` altında, ilk ekran ve masaüstü sonuç görsel olarak incelendi.

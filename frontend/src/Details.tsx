@@ -12,13 +12,13 @@ export function FilterChecks({checks}:{checks:FilterCheck[]}){
  return <div className="filter-checks">{checks.map((check,i)=><div className={'filter-check truth-'+check.truth.toLowerCase()} key={i}>
   <code>{check.condition}</code><strong>{check.truth}</strong>
   <dl>{check.operands.map((operand,j)=><div key={j}><dt>{operand}</dt><dd>{showValue(check.values[j])}</dd></div>)}</dl>
-  {check.truth==='UNKNOWN'&&<p>Koşul NULL nedeniyle bilinmiyor; WHERE yalnız TRUE olan kayıtları geçirir.</p>}
+  {check.truth==='UNKNOWN'&&<p>NULL karşılaştırması; bu kayıt filtreyi geçmez.</p>}
  </div>)}</div>;
 }
 
 export function SchemaDetails({table}:{table:Table}){
  return <details className="schema-details"><summary>Tablo yapısı · {table.columns.length} sütun</summary>
-  {!table.primary_key&&<p className="schema-warning">Bu tablo görüntülenebilir; açıklama için tek sütunlu INTEGER PRIMARY KEY gerekli.</p>}
+  {!table.primary_key&&<p className="schema-warning">Bu tablo yalnızca görüntülenebilir: INTEGER PRIMARY KEY gerekli.</p>}
   <div className="schema-columns">{table.columns.map(column=><div key={column.name}>
    <strong>{column.name}</strong><code>{column.type||'Tür belirtilmemiş'}</code>
    {column.pk&&<span className="schema-key">PRIMARY KEY</span>}

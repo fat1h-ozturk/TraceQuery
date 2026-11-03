@@ -207,6 +207,7 @@ def execute_plan(path, plan, max_rows=1000, cancel=None):
         first,alias=roles[0]
         source=f'{quote(first)} AS {quote(alias)}'
         stages=[]
+        join_excluded=[]
         for index in range(len(roles)):
             if index:
                 name,role=roles[index]
@@ -214,6 +215,16 @@ def execute_plan(path, plan, max_rows=1000, cancel=None):
             aliases=[a for _,a in roles[:index+1]]
             stage=fetch(fields(index+1),source,aliases)
             stage.update(label='Kaynak tablo' if index==0 else f'JOIN {index}', detail=source, aliases=aliases.copy())
+            if index:
+                previous=stages[-1]
+                previous_aliases=previous['aliases']
+                surviving={tuple(row['sources'][a] for a in previous_aliases) for row in stage['rows']}
+                for row in previous['rows']:
+                    budget.check()
+                    if tuple(row['sources'][a] for a in previous_aliases) not in surviving:
+                        join_excluded.append({'stage':index,'sources':row['sources'],
+                                              'condition':plan['joins'][index-1],
+                                              'target':{'table':name,'alias':role}})
             stages.append(stage)
         aliases=[a for _,a in roles]
         excluded=[]
@@ -269,5 +280,6 @@ def execute_plan(path, plan, max_rows=1000, cancel=None):
                                  'record':source_records[a][identity],
                                  'first_missing_stage':next((i for i,count in enumerate(counts) if count==0),None),
                                  'contributions':result_counts[a][identity]})
-        return {'sql':plan['sql'],'stages':stages,'result':result,'excluded':excluded,'outcomes':outcomes,
+        return {'sql':plan['sql'],'stages':stages,'result':result,'excluded':excluded,
+                'join_excluded':join_excluded,'outcomes':outcomes,
                 'notice':'Aşamalar mantıksal açıklamadır; SQLite fiziksel yürütme planı değildir.'}

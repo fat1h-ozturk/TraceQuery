@@ -20,7 +20,9 @@ test('actual demo shows source values, missing JOIN records and FALSE versus UNK
  await expect(sources.locator('.filter-check').getByText('80',{exact:true})).toBeVisible();
  await expect(sources.locator('.filter-check').getByText('60',{exact:true})).toBeVisible();
  await page.getByRole('button',{name:/o · #3.*Mehmet/}).click();
- await expect(page.getByText(/JOIN 1 aşamasında bu kaydı taşıyan eşleşme kalmadı/)).toBeVisible();
+ await expect(page.getByRole('heading',{name:'JOIN 1: eşleşme bulunamadı'})).toBeVisible();
+ await expect(page.locator('.join-loss')).toContainText('kayitlar (k)');
+ await expect(page.locator('.join-loss')).toContainText('o.id = k.ogrenci_id');
  await page.getByRole('button',{name:/o · #2.*Ayşe/}).click();
  await expect(page.locator('.filter-check').getByText('FALSE',{exact:true})).toBeVisible();
  await expect(page.locator('.filter-check').getByText('UNKNOWN',{exact:true})).toBeVisible();

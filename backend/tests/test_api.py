@@ -13,6 +13,8 @@ def test_demo_to_sources_and_write_rejection():
         assert row['sources']=={'o':1,'k':101,'d':10}
         assert row['checks'][0]['truth']=='TRUE'
         assert row['checks'][0]['values']==[80,60]
+        assert any(branch['sources']=={'o':3} and branch['stage']==1
+                   for branch in response.json()['join_excluded'])
         rejected=client.post('/api/explain',json={'database_id':opened['id'],'sql':'DELETE FROM ogrenciler'})
         assert rejected.status_code==400
         assert len(client.get(f'/api/table/{opened["id"]}/ogrenciler').json()['rows'])==3

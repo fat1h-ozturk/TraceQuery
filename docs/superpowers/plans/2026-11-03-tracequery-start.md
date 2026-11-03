@@ -63,3 +63,8 @@ Files: README.md, .gitignore, scripts/dev.sh.
 ### Geçen WHERE koşulları
 - UC-06 adım 5 tamamlandı: geçen sonuç birleşimleri gerçek operand değerlerini taşır; arayüz seçilen sonuç ve WHERE satırında gösterir.
 - Aynı görünen iki Ali satırının 80/75 notlarının karışmaması testi RED→GREEN. Toplam 23 test başarılı, parser/API bağımlılık modülleri 2 skip. Arayüz beklentileri eklendi; gerçek tarayıcı kontrolü hâlâ bekliyor.
+
+### Çoklu JOIN'de dal kaybı
+- UC-07 zorunlu kısmi katılım örneğinde eksik kalan JOIN dalı açıkça kaydedilip gösteriliyor. Yeni açıklama, kaynak kişinin diğer dalının sonuç katkısını silmez.
+- Gerçek SQLite testi RED→GREEN: Ali 1 sonuçta kalıyor, 102 kaydı JOIN 2'de eleniyor, Mehmet JOIN 1'de eşleşmiyor. Son koşu 24 başarılı, 2 bağımlılık modülü skip.
+- PyPI/npm DNS erişimi hâlâ yok; tam doğrulama bekliyor.

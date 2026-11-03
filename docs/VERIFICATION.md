@@ -28,7 +28,7 @@ PyPI kurulumu paket bulamama/ağ erişimi hatasıyla, npm kurulumu `EAI_AGAIN re
 | JOIN/WHERE kaynak bağlantıları | Tekrarlı satır, alias ve NULL testleri | AST'den uçtan uca doğrulama |
 | Gerçek kaynak hücrelerinin gösterimi | API çıktı modelinin çekirdek testleri | React render testi |
 | AND koşulları ve operand değerleri | FALSE/UNKNOWN ve değer testleri | Parser + UI uçtan uca |
-| Elenmenin ilk aşaması | Ali/Ayşe/Mehmet çekirdek testi | Çoklu JOIN dal çeşitleri |
+| Elenmenin ilk aşaması ve kısmi JOIN kaybı | Ali/Ayşe/Mehmet ve çoklu JOIN dal testi | API/tarayıcı doğrulaması |
 | BLOB, generated sütun ve büyük kimlik sınırı | Çekirdek regresyon testleri | HTTP JSON testi |
 | Kaynak sınırında açıklamayı durdurma | Satır sınırı testi | Süre ve istemci iptal akışı |
 | Kullanıcı araştırması | Yok | Ürün doğrulandıktan sonra pilot |
@@ -63,3 +63,10 @@ Bağımsız ikinci inceleme, kaynak kayıt/filtre payloadları ve frontend tiple
 - UC-06 için nihai sonuçta ve WHERE aşamasında, seçilen kaynak birleşiminin koşul sonuçları ve operand değerleri taşınıyor. Önceki aşamalara gelecekteki filtre sonucu eklenmiyor.
 - Aynı görünen iki Ali satırının ayrı kaynak notlarını (80 ve 75) koruyan test önce `KeyError: checks` ile başarısız oldu; uygulamadan sonra geçti.
 - Son pytest koşusu: 23 başarılı, bağımlılık eksikliğiyle 2 modül atlandı. API ve Playwright kontrollerine yeni alanlar için beklentiler eklendi; bu iki katman henüz çalıştırılmadı.
+
+## Sonraki JOIN'de kısmi dal kaybı
+
+- UC-07/AC-09/AC-10 için, bir önceki aşama birleşiminin sonraki JOIN'de hiç uzantısı kalmaması ayrı `join_excluded` kaydı üretir. Kaynak kimlikleri, aşama ve ON koşulu korunur.
+- Gerçek SQLite örneğinde Ali'nin 101 numaralı kaydı sonuçta kalırken 102 numaralı kaydı eksik ders eşleşmesi nedeniyle JOIN 2'de elendi. Ali'nin katkısı 1, aşama sayıları 1/2/1/1; tamamen elendiği söylenmiyor. Mehmet için JOIN 1 kaybı da ayrı tutuldu. Test önce eksik alan nedeniyle başarısız oldu, uygulama sonrası geçti.
+- Son koşu: 22 çekirdek + 2 orkestrasyon testi başarılı, 2 modül bağımlılık yokluğuyla atlandı. Python compileall ve diff kontrolü başarılı. UI/HTTP beklentileri güncellendi; çalıştırılmış sayılmıyor.
+- Paket ağını yeniden kontrol: PyPI ve npm alan adları çözülemiyor; tam entegrasyon engeli sürüyor.

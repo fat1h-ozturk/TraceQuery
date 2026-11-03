@@ -62,6 +62,31 @@ class CoreTests(unittest.TestCase):
                          [row['checks'] for row in rows])
         self.assertNotIn('checks',result['stages'][0]['rows'][0])
 
+    def test_later_join_keeps_a_surviving_branch_and_explains_the_lost_one(self):
+        from tracequery.engine import execute_plan
+        db=sqlite3.connect(self.path)
+        try:
+            db.executescript("CREATE TABLE courses(id INTEGER PRIMARY KEY, name TEXT);\n                INSERT INTO courses VALUES(10,'Math'),(30,'Unused');\n                ALTER TABLE enrollments ADD COLUMN course_id INTEGER;\n                UPDATE enrollments SET course_id=10;\n                UPDATE enrollments SET course_id=99 WHERE id=102;")
+        finally:
+            db.close()
+        plan={**self.plan,'tables':self.plan['tables']+[('courses','c')],
+              'joins':self.plan['joins']+['"e"."course_id" = "c"."id"']}
+        result=execute_plan(self.path,plan)
+        ali=next(o for o in result['outcomes'] if o['alias']=='s' and o['id']==1)
+        lost_enrollment=next(o for o in result['outcomes'] if o['alias']=='e' and o['id']==102)
+        self.assertEqual(ali['contributions'],1)
+        self.assertEqual(ali['counts'],[1,2,1,1])
+        self.assertIsNone(ali['first_missing_stage'])
+        self.assertEqual(lost_enrollment['first_missing_stage'],2)
+        self.assertIn({'stage':2,'sources':{'s':1,'e':102},
+                       'condition':'"e"."course_id" = "c"."id"',
+                       'target':{'table':'courses','alias':'c'}},result['join_excluded'])
+        self.assertIn({'stage':1,'sources':{'s':3},
+                       'condition':'"s"."id" = "e"."student_id"',
+                       'target':{'table':'enrollments','alias':'e'}},result['join_excluded'])
+        self.assertFalse(any(branch['sources'].get('e')==101 for branch in result['join_excluded']))
+        self.assertFalse(any(branch['sources'].get('e')==102 for branch in result['excluded']))
+
     def test_case_insensitive_sqlite_table_names(self):
         from tracequery.engine import execute_plan
         p={**self.plan,'tables':[('STUDENTS','s'),('ENROLLMENTS','e')]}

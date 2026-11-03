@@ -57,3 +57,9 @@ Bağımsız ikinci inceleme, kaynak kayıt/filtre payloadları ve frontend tiple
 - 1.000 kaynak satırı / 10 alias yerel denemesi 0,183 saniyede tamamlandı; 1.000 sonuç ve 10.000 kaynak katkısı doğrulandı. Bu tek örnek genel performans garantisi değildir.
 - Bağımsız inceleme aynı örneği 0,176 saniyede tamamladı; 10 ms sonra gönderilen iptal sinyalinin açıklamayı durdurduğunu da doğruladı.
 - Son koşu: 20 çekirdek + 2 asenkron orkestrasyon testi başarılı; SQLGlot ve FastAPI modülleri bağımlılık yokluğu nedeniyle atlandı. Python compileall ve git diff --check başarılı.
+
+## Geçen satırın filtre açıklaması
+
+- UC-06 için nihai sonuçta ve WHERE aşamasında, seçilen kaynak birleşiminin koşul sonuçları ve operand değerleri taşınıyor. Önceki aşamalara gelecekteki filtre sonucu eklenmiyor.
+- Aynı görünen iki Ali satırının ayrı kaynak notlarını (80 ve 75) koruyan test önce `KeyError: checks` ile başarısız oldu; uygulamadan sonra geçti.
+- Son pytest koşusu: 23 başarılı, bağımlılık eksikliğiyle 2 modül atlandı. API ve Playwright kontrollerine yeni alanlar için beklentiler eklendi; bu iki katman henüz çalıştırılmadı.

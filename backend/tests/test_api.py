@@ -9,7 +9,10 @@ def test_demo_to_sources_and_write_rejection():
         opened=client.post('/api/demo').json()
         response=client.post('/api/explain',json={'database_id':opened['id'],'sql':opened['demo_sql']})
         assert response.status_code==200
-        assert response.json()['result']['rows'][0]['sources']=={'o':1,'k':101,'d':10}
+        row=response.json()['result']['rows'][0]
+        assert row['sources']=={'o':1,'k':101,'d':10}
+        assert row['checks'][0]['truth']=='TRUE'
+        assert row['checks'][0]['values']==[80,60]
         rejected=client.post('/api/explain',json={'database_id':opened['id'],'sql':'DELETE FROM ogrenciler'})
         assert rejected.status_code==400
         assert len(client.get(f'/api/table/{opened["id"]}/ogrenciler').json()['rows'])==3

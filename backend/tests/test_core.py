@@ -50,6 +50,18 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(excluded[104]['checks'][0]['truth'],'UNKNOWN')
         self.assertEqual(excluded[104]['checks'][0]['values'],[None,60])
 
+    def test_surviving_duplicate_rows_keep_their_own_filter_values(self):
+        from tracequery.engine import execute_plan
+        plan={**self.plan,'filters':[{'sql':'"e"."grade" >= 60','operands':['"e"."grade"','60']}]}
+        result=execute_plan(self.path,plan)
+        rows=result['result']['rows']
+        self.assertEqual([row['values'] for row in rows],[['Ali'],['Ali']])
+        self.assertEqual([row['checks'][0]['values'] for row in rows],[[80,60],[75,60]])
+        self.assertEqual([row['checks'][0]['truth'] for row in rows],['TRUE','TRUE'])
+        self.assertEqual([row['checks'] for row in result['stages'][-1]['rows']],
+                         [row['checks'] for row in rows])
+        self.assertNotIn('checks',result['stages'][0]['rows'][0])
+
     def test_case_insensitive_sqlite_table_names(self):
         from tracequery.engine import execute_plan
         p={**self.plan,'tables':[('STUDENTS','s'),('ENROLLMENTS','e')]}

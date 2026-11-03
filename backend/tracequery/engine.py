@@ -217,6 +217,7 @@ def execute_plan(path, plan, max_rows=1000, cancel=None):
             stages.append(stage)
         aliases=[a for _,a in roles]
         excluded=[]
+        filter_checks={}
         if plan['where']:
             # SQLite evaluates its own NULL/affinity/collation semantics, not Python.
             filters=plan.get('filters') or [{'sql':plan['where'],'operands':[]}]
@@ -226,23 +227,30 @@ def execute_plan(path, plan, max_rows=1000, cancel=None):
                 expressions.extend(condition['operands'])
             check=fetch(', '.join(expressions),source,aliases)
             for row in check['rows']:
+                budget.check()
                 value=row['values'][0]
+                checks=[]
+                offset=1
+                for condition in filters:
+                    truth=row['values'][offset]
+                    width=len(condition['operands'])
+                    checks.append({'condition':condition['sql'],
+                                   'truth':'UNKNOWN' if truth is None else ('TRUE' if truth else 'FALSE'),
+                                   'operands':condition['operands'], 'values':row['values'][offset+1:offset+1+width]})
+                    offset+=1+width
+                filter_checks[tuple(row['sources'][a] for a in aliases)]=checks
                 if value is None or value==0:
-                    checks=[]
-                    offset=1
-                    for condition in filters:
-                        truth=row['values'][offset]
-                        width=len(condition['operands'])
-                        checks.append({'condition':condition['sql'],
-                                       'truth':'UNKNOWN' if truth is None else ('TRUE' if truth else 'FALSE'),
-                                       'operands':condition['operands'], 'values':row['values'][offset+1:offset+1+width]})
-                        offset+=1+width
                     excluded.append({'sources':row['sources'],'reason':'UNKNOWN' if value is None else 'FALSE',
                                      'condition':plan['where'],'checks':checks})
             stage=fetch(fields(len(roles)),source,aliases,plan['where'])
             stage.update(label='WHERE',detail=plan['where'],aliases=aliases.copy())
             stages.append(stage)
         result=fetch(', '.join(plan['projections']),source,aliases,plan['where'])
+        if plan['where']:
+            for grid in (stages[-1],result):
+                for row in grid['rows']:
+                    budget.check()
+                    row['checks']=filter_checks[tuple(row['sources'][a] for a in aliases)]
         stage_counts=[]
         for stage in stages:
             counters={alias:Counter() for alias in stage['aliases']}

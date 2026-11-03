@@ -59,7 +59,7 @@ Bu yerel uygulamayı genel internete açmayın: kimlik doğrulama, çok kullanı
 
 ## Bu ortamda yapılan kontroller
 
-İlk geliştirme sırasında dış paket indirme ağı erişilemedi. Standart kütüphane çekirdek testlerinin **22'si geçti**; mevcut yerel pytest ile de **22 geçti, 2 modül atlandı** (SQLGlot ve FastAPI eksik). Python sözdizimi kontrolü başarılı. API/parser entegrasyonu, TypeScript derlemesi ve gerçek tarayıcı akışı **henüz doğrulanmadı**. Bu sınır, uygulamanın uçtan uca çalıştığı iddiasında bulunulmadığı anlamına gelir.
+İlk geliştirme sırasında dış paket indirme ağı erişilemedi. Standart kütüphane çekirdek testlerinin **23'ü geçti**; mevcut yerel pytest ile de **23 geçti, 2 modül atlandı** (SQLGlot ve FastAPI eksik). Python sözdizimi kontrolü başarılı. API/parser entegrasyonu, TypeScript derlemesi ve gerçek tarayıcı akışı **henüz doğrulanmadı**. Bu sınır, uygulamanın uçtan uca çalıştığı iddiasında bulunulmadığı anlamına gelir.
 
 ## Tarayıcı doğrulaması
 
@@ -79,3 +79,5 @@ Kaynak kartları gerçek sütun değerlerini, filtre açıklamaları karşılaş
 WHERE ve ON içinde gerçek kaynak sütunlarını kullanın; SELECT ile tanımlanmış sütun takma adını bu koşullarda kullanmak ilk sürüm kapsamında değildir.
 
 Sorgu çalışırken **İptal et** düğmesi HTTP isteğini keser. Backend bağlantı kopmasını algılayarak iptal olayını SQLite progress handler'a iletir; önceki başarılı açıklama korunur. Çekirdek iptal ve bağlantı-kopması orkestrasyonu gerçek SQLite testleriyle doğrulandı. Tarayıcıdan backend'e bütün iptal hattı henüz çalıştırılmadı.
+
+Sonuç veya WHERE aşamasından seçilen satırda filtre koşulları ve karşılaştırılan değerler gösterilir. Örneğin Ali'nin aynı isimli iki sonuç satırında notlar ayrı ayrı 80 ve 75 olarak izlenir; açıklama görünen değerler yerine kaynak kimlikleriyle eşleştirilir.

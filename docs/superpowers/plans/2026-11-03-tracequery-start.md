@@ -59,3 +59,7 @@ Files: README.md, .gitignore, scripts/dev.sh.
 - Kullanıcının talebi doğrultusunda anlamlı ve doğrulanmış adımlar ayrı commit'lerle kaydediliyor; dosya silinmesi bu commit'lere dahil edilmiyor.
 
 - Bağımsız incelemenin Python sayım döngülerinde süre bütçesi bulgusu ortak bütçe ve aşama sayaçlarıyla giderildi. 1.000 satır/10 alias denemesi 0,183 saniye; 22 test başarılı, 2 bağımlılık modülü skip. Son incelemede yeni önemli bulgu yok.
+
+### Geçen WHERE koşulları
+- UC-06 adım 5 tamamlandı: geçen sonuç birleşimleri gerçek operand değerlerini taşır; arayüz seçilen sonuç ve WHERE satırında gösterir.
+- Aynı görünen iki Ali satırının 80/75 notlarının karışmaması testi RED→GREEN. Toplam 23 test başarılı, parser/API bağımlılık modülleri 2 skip. Arayüz beklentileri eklendi; gerçek tarayıcı kontrolü hâlâ bekliyor.

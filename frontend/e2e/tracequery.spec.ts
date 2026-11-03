@@ -14,7 +14,11 @@ test('actual demo shows source values, missing JOIN records and FALSE versus UNK
  const sources=page.getByRole('complementary',{name:'Kaynak izi'});
  await expect(sources.getByText('Ali',{exact:true})).toBeVisible();
  await expect(sources.getByText('Matematik',{exact:true})).toBeVisible();
- await expect(sources.getByText('80',{exact:true})).toBeVisible();
+ await expect(sources.locator('.record-values').getByText('80',{exact:true})).toBeVisible();
+ await expect(sources.getByRole('heading',{name:'WHERE koşulları nasıl geçti?'})).toBeVisible();
+ await expect(sources.locator('.filter-check').getByText('TRUE',{exact:true})).toBeVisible();
+ await expect(sources.locator('.filter-check').getByText('80',{exact:true})).toBeVisible();
+ await expect(sources.locator('.filter-check').getByText('60',{exact:true})).toBeVisible();
  await page.getByRole('button',{name:/o · #3.*Mehmet/}).click();
  await expect(page.getByText(/JOIN 1 aşamasında bu kaydı taşıyan eşleşme kalmadı/)).toBeVisible();
  await page.getByRole('button',{name:/o · #2.*Ayşe/}).click();

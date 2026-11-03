@@ -67,7 +67,8 @@ async def upload(file:UploadFile):
 def get_schema(identity:str):
     return inspect_database(database(identity))
 
-@app.get('/api/table/{identity}/{table}')
+@app.get('/api/table/{identity}')
+@app.get('/api/table/{identity}/{table:path}')
 def table(identity:str,table:str,offset:int=0):
     if offset<0: raise QueryError('Sayfa başlangıcı negatif olamaz.')
     return read_table(database(identity),table,offset)

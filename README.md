@@ -19,7 +19,13 @@ cd ..
 
 Tarayıcıda **http://127.0.0.1:8000** açılır. “Örnek veritabanıyla başla” → “Çalıştır ve açıkla” → bir sonuç satırının numarası → kaynaklar. Kayıtların yolculuğundan JOIN'de kaybolan Mehmet ve WHERE'de elenen Ayşe incelenebilir. NULL filtre sonucu UNKNOWN olarak ayrılır.
 
-Geliştirmede backend'i aynı komutla `--reload` ile çalıştırın; ikinci terminalde `cd frontend && npm run dev`. Vite API isteklerini yerel backend'e yönlendirir.
+Geliştirmede iki terminal kullanın. Backend:
+
+```bash
+.venv/bin/python -m uvicorn tracequery.app:app --app-dir backend --host 127.0.0.1 --port 8000 --reload
+```
+
+Diğer terminalde `cd frontend && npm run dev` çalıştırın. Vite API isteklerini yerel backend'e yönlendirir. `start.sh` üretim derlemesini açar; `--reload` seçeneği almaz.
 
 ## İlk sürüm kapsamı
 
@@ -60,9 +66,9 @@ Bu yerel uygulamayı genel internete açmayın: kimlik doğrulama, çok kullanı
 
 ## Bu ortamda yapılan kontroller
 
-Kurulum sonrası **54 backend testi atlama olmadan geçti**: SQLite motoru, gerçek SQLGlot ayrıştırıcısı ve FastAPI TestClient akışı. TypeScript kontrolü ve Vite üretim derlemesi başarılı. Gerçek dosya yükleme, salt okunur kopya, geçersiz/büyük dosya reddi ve geçici dosyaların temizliği HTTP testlerinde kontrol edildi.
+Kurulum sonrası **58 backend testi atlama olmadan geçti**: SQLite motoru, gerçek SQLGlot ayrıştırıcısı ve FastAPI TestClient akışı. TypeScript kontrolü ve Vite üretim derlemesi başarılı. Gerçek dosya yükleme, salt okunur kopya, geçersiz/büyük dosya reddi ve geçici dosyaların temizliği HTTP testlerinde kontrol edildi.
 
-Bu ajan oturumunda yerel TCP soketi açılması engelleniyor; tarayıcı testlerinin altı senaryosu henüz çalıştırılmadı. Gerçek ekran ve Chromium akışı doğrulanmadan uçtan uca tamamlanma iddiasında bulunulmuyor. Güncel kanıtlar [docs/VERIFICATION.md](docs/VERIFICATION.md) içinde.
+Kullanıcının terminalindeki gerçek Chromium koşusunda altı senaryonun beşi geçti. Bir senaryo, aynı 60 değerinin hem koşul etiketi hem hücre değeri olarak görünmesi nedeniyle testte belirsiz seçime takıldı. Seçici düzeltildi; son değişikliklerle tam Chromium koşusu bekliyor. Bu ajan oturumunda yerel TCP sunucusu açma ve sandbox dışı çalıştırma izni engellendiği için bu kontrol burada tamamlanamadı. Güncel kanıtlar [docs/VERIFICATION.md](docs/VERIFICATION.md) içinde.
 
 ## Tarayıcı doğrulaması
 

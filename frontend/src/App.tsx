@@ -45,7 +45,7 @@ export default function App(){
    } finally {queryController.current=null;}
   });
  }
- async function browse(name:string,offset=0){await action(async()=>{const next=await api<Page>(`/table/${db!.id}/${encodeURIComponent(name)}?offset=${offset}`);setTable(name);setPage(next);setTab('tablo')})}
+ async function browse(name:string,offset=0){await action(async()=>{const next=await api<Page>(`/table/${db!.id}?table=${encodeURIComponent(name)}&offset=${offset}`);setTable(name);setPage(next);setTab('tablo')})}
  const grid=analysis?(stage<0?analysis.result:analysis.stages[stage]):null;
  const row=grid&&selected>=0?grid.rows[selected]:null;
  const lostJoins=focus?analysis?.join_excluded.filter(branch=>branch.sources[focus.alias]===focus.id)??[]:[];

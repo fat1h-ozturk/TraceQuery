@@ -20,7 +20,7 @@ test('actual demo shows source values, missing JOIN records and FALSE versus UNK
  await expect(sources.getByRole('heading',{name:'WHERE koşulları nasıl geçti?'})).toBeVisible();
  await expect(sources.locator('.filter-check').getByText('TRUE',{exact:true})).toBeVisible();
  await expect(sources.locator('.filter-check').getByText('80',{exact:true})).toBeVisible();
- await expect(sources.locator('.filter-check').getByText('60',{exact:true})).toBeVisible();
+ await expect(sources.locator('.filter-check').getByRole('definition').filter({hasText:/^60$/})).toBeVisible();
  await page.screenshot({path:testInfo.outputPath('demo-provenance.png'),fullPage:true});
  await page.getByRole('button',{name:/o · #3.*Mehmet/}).click();
  await expect(page.getByRole('heading',{name:'JOIN 1: eşleşme bulunamadı'})).toBeVisible();
@@ -68,15 +68,15 @@ test('a real uploaded SQLite file gets a valid query and keeps its original byte
  const databasePath=testInfo.outputPath('inventory.db');
  execFileSync('../.venv/bin/python',['-c',`import sqlite3,sys
 with sqlite3.connect(sys.argv[1]) as db:
-    db.executescript("""CREATE TABLE "order items"(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER);
-    INSERT INTO "order items" VALUES(1,'Notebook',8);""")
+    db.executescript("""CREATE TABLE "order items/2026"(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER);
+    INSERT INTO "order items/2026" VALUES(1,'Notebook',8);""")
 `,databasePath]);
  const original=readFileSync(databasePath);
  await page.getByRole('button',{name:'Çalıştır ve açıkla'}).click();
  await expect(page.getByRole('table',{name:'Sorgu sonucu'}).getByRole('row')).toHaveCount(3);
  await page.locator('input[type="file"]').setInputFiles(databasePath);
  await expect(page.getByText('inventory.db',{exact:true})).toBeVisible();
- await expect(page.getByLabel('SQL sorgusu',{exact:true})).toHaveValue('SELECT * FROM "order items"');
+ await expect(page.getByLabel('SQL sorgusu',{exact:true})).toHaveValue('SELECT * FROM "order items/2026"');
  await expect(page.getByRole('table',{name:'Sorgu sonucu'})).toHaveCount(0);
  await page.getByRole('button',{name:'Çalıştır ve açıkla'}).click();
  const table=page.getByRole('table',{name:'Sorgu sonucu'});
@@ -84,8 +84,10 @@ with sqlite3.connect(sys.argv[1]) as db:
  await expect(table.getByRole('cell',{name:'Notebook',exact:true})).toBeVisible();
  await table.getByRole('button',{name:'1. satırın kaynaklarını göster',exact:true}).click();
  await expect(page.getByRole('complementary',{name:'Kaynak izi'}).getByText('Notebook',{exact:true})).toBeVisible();
- expect(readFileSync(databasePath).equals(original)).toBe(true);
  await page.screenshot({path:testInfo.outputPath('upload-provenance.png'),fullPage:true});
+ await page.getByRole('button',{name:/order items\/2026/}).click();
+ await expect(page.getByRole('table').getByRole('cell',{name:'Notebook',exact:true})).toBeVisible();
+ expect(readFileSync(databasePath).equals(original)).toBe(true);
 });
 
 test('cancelling a pending query preserves its previous result and blocks table browsing',async({page})=>{

@@ -94,3 +94,10 @@ Files: README.md, .gitignore, scripts/dev.sh.
 - Chromium kurulumu tamamlanmış; normal terminalde verify koşusu henüz loga yansımadı. Bu oturumda TCP dinleme ve browser host engeli sürüyor.
 - Sorgu sırasında kaynak tablo sekmesinin ikinci ağ işlemi başlatabilmesi düzeltildi. Ortak ref aynı anda tek işlem kabul eder; iptal denetleyicisi yalnız kabul edilen sorguda oluşturulur.
 - Bekleyen HTTP isteğinin iptalinden sonra son başarılı sonuç/SQL'in korunması ve tablo sekmesinin kilitlenmesi için altıncı Playwright senaryosu eklendi. Build ve test keşfi geçti; gerçek tarayıcı doğrulaması bekliyor.
+
+### Gerçek Chromium ve son inceleme
+- Kullanıcı terminalinde ilk tam koşu: 54 backend + build geçti, Chromium 5 başarılı/1 başarısız. Başarısız seçici dt/dd iki 60 değerini eşliyordu; definition rolüne daraltıldı, tekrar koşu bekliyor.
+- Son bağımsız inceleme önemli yeni mimari sorun bulmadı. Geçerli slash içeren tablo adında 404 ve README reload komutunu bildirdi.
+- Final: Ruling: Tablo adının URI yolu olarak kaybı rutin geçerli SQLite girdisini bozuyor — query parametresiyle ve eski yolu koruyarak düzeltildi; dört gerçek HTTP testinde RED→GREEN. Yanlışsa istemci API uyumluluğu riski var; eski yol testle korunuyor.
+- Güncel 58 backend testi geçti; TS/Vite build ve altı browser testinin keşfi başarılı. Browser yükleme varyantı boşluk/slash içeren tabloyu açıp gezmeyi de kontrol eder.
+- Sandbox dışı browser testi için resmi yetki yükseltme isteği otomatik politika tarafından reddedildi. Geniş erişim verme veya kısıtı dolanma yapılmadı. Kullanıcının gerekli olmadıkça kendisinden işlem istememe tercihi doğrultusunda istek tekrar edilmedi.

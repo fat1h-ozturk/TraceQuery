@@ -98,3 +98,22 @@ def test_oversized_upload_is_rejected_without_leaving_a_copy():
         assert '10 MB' in response.json()['detail']
         assert app.state.databases=={}
         assert list(app.state.directory.iterdir())==[]
+
+@pytest.mark.parametrize('table_name',['sales/2026','.','..','orders?new#2026'])
+def test_unusual_table_names_are_browsable_via_query_parameter(tmp_path,table_name):
+    import sqlite3
+    path=tmp_path/'names.db'
+    db=sqlite3.connect(path)
+    try:
+        db.executescript(f"""CREATE TABLE "{table_name}"(id INTEGER PRIMARY KEY, value TEXT); INSERT INTO "{table_name}" VALUES(1,'visible');""")
+    finally:
+        db.close()
+    with TestClient(app,backend_options={'loop_factory':responsive_loop}) as client:
+        opened=client.post('/api/databases',files={'file':('names.db',path.read_bytes())}).json()
+        page=client.get(f'/api/table/{opened["id"]}',params={'table':table_name})
+        assert page.status_code==200
+        assert page.json()['rows']==[[1,'visible']]
+        if table_name=='sales/2026':
+            legacy=client.get(f'/api/table/{opened["id"]}/sales%2F2026')
+            assert legacy.status_code==200
+            assert legacy.json()['rows']==page.json()['rows']

@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
-from .engine import QueryError, inspect_database, read_table, explain
+from .engine import QueryError, inspect_database, read_table, explain, quote
 from .demo import create_demo, DEMO_SQL
 from .execution import run_with_disconnect
 
@@ -30,17 +30,20 @@ def database(identity):
         raise QueryError('Veritabanı oturumu bulunamadı; dosyayı tekrar açın.')
     return app.state.databases[identity]
 
-def register(path,name):
+def register(path,name,example_sql=None):
     tables=inspect_database(path)
+    if example_sql is None:
+        source=next((table for table in tables if table['primary_key']),None)
+        example_sql=f'SELECT * FROM {quote(source["name"])}' if source else ''
     identity=path.stem
     app.state.databases[identity]=path
-    return {'id':identity,'name':name,'tables':tables,'demo_sql':DEMO_SQL}
+    return {'id':identity,'name':name,'tables':tables,'demo_sql':example_sql}
 
 @app.post('/api/demo')
 def demo():
     path=app.state.directory/(uuid.uuid4().hex+'.db')
     create_demo(path)
-    return register(path,'Öğrenci veritabanı')
+    return register(path,'Öğrenci veritabanı',DEMO_SQL)
 
 @app.post('/api/databases')
 async def upload(file:UploadFile):

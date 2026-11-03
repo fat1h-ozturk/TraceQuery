@@ -1,4 +1,6 @@
 import {test,expect} from '@playwright/test';
+import {execFileSync} from 'node:child_process';
+import {readFileSync} from 'node:fs';
 
 test.beforeEach(async({page})=>{
  await page.goto('/');
@@ -6,7 +8,7 @@ test.beforeEach(async({page})=>{
  await expect(page.getByText('Öğrenci veritabanı',{exact:true})).toBeVisible();
 });
 
-test('actual demo shows source values, missing JOIN records and FALSE versus UNKNOWN',async({page})=>{
+test('actual demo shows source values, missing JOIN records and FALSE versus UNKNOWN',async({page},testInfo)=>{
  await page.getByRole('button',{name:'Çalıştır ve açıkla'}).click();
  const table=page.getByRole('table',{name:'Sorgu sonucu'});
  await expect(table.getByRole('row')).toHaveCount(3);
@@ -19,6 +21,7 @@ test('actual demo shows source values, missing JOIN records and FALSE versus UNK
  await expect(sources.locator('.filter-check').getByText('TRUE',{exact:true})).toBeVisible();
  await expect(sources.locator('.filter-check').getByText('80',{exact:true})).toBeVisible();
  await expect(sources.locator('.filter-check').getByText('60',{exact:true})).toBeVisible();
+ await page.screenshot({path:testInfo.outputPath('demo-provenance.png'),fullPage:true});
  await page.getByRole('button',{name:/o · #3.*Mehmet/}).click();
  await expect(page.getByRole('heading',{name:'JOIN 1: eşleşme bulunamadı'})).toBeVisible();
  await expect(page.locator('.join-loss')).toContainText('kayitlar (k)');
@@ -27,6 +30,7 @@ test('actual demo shows source values, missing JOIN records and FALSE versus UNK
  await expect(page.locator('.filter-check').getByText('FALSE',{exact:true})).toBeVisible();
  await expect(page.locator('.filter-check').getByText('UNKNOWN',{exact:true})).toBeVisible();
  await expect(page.locator('.filter-check').getByText('45',{exact:true})).toBeVisible();
+ await page.screenshot({path:testInfo.outputPath('demo-exclusion.png'),fullPage:true});
 });
 
 test('unsupported write reports an error and leaves source students intact',async({page})=>{
@@ -58,4 +62,28 @@ test('editing SQL preserves the query attached to the last successful explanatio
  await page.getByRole('button',{name:'Çalıştır ve açıkla'}).click();
  await expect(page.locator('.executed-query code')).toContainText('WHERE o.id > 100');
  await expect(page.getByRole('table',{name:'Sorgu sonucu'}).getByRole('row')).toHaveCount(1);
+});
+
+test('a real uploaded SQLite file gets a valid query and keeps its original bytes',async({page},testInfo)=>{
+ const databasePath=testInfo.outputPath('inventory.db');
+ execFileSync('../.venv/bin/python',['-c',`import sqlite3,sys
+with sqlite3.connect(sys.argv[1]) as db:
+    db.executescript("""CREATE TABLE "order items"(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER);
+    INSERT INTO "order items" VALUES(1,'Notebook',8);""")
+`,databasePath]);
+ const original=readFileSync(databasePath);
+ await page.getByRole('button',{name:'Çalıştır ve açıkla'}).click();
+ await expect(page.getByRole('table',{name:'Sorgu sonucu'}).getByRole('row')).toHaveCount(3);
+ await page.locator('input[type="file"]').setInputFiles(databasePath);
+ await expect(page.getByText('inventory.db',{exact:true})).toBeVisible();
+ await expect(page.getByLabel('SQL sorgusu',{exact:true})).toHaveValue('SELECT * FROM "order items"');
+ await expect(page.getByRole('table',{name:'Sorgu sonucu'})).toHaveCount(0);
+ await page.getByRole('button',{name:'Çalıştır ve açıkla'}).click();
+ const table=page.getByRole('table',{name:'Sorgu sonucu'});
+ await expect(table.getByRole('row')).toHaveCount(2);
+ await expect(table.getByRole('cell',{name:'Notebook',exact:true})).toBeVisible();
+ await table.getByRole('button',{name:'1. satırın kaynaklarını göster',exact:true}).click();
+ await expect(page.getByRole('complementary',{name:'Kaynak izi'}).getByText('Notebook',{exact:true})).toBeVisible();
+ expect(readFileSync(databasePath).equals(original)).toBe(true);
+ await page.screenshot({path:testInfo.outputPath('upload-provenance.png'),fullPage:true});
 });

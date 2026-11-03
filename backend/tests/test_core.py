@@ -98,6 +98,33 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(first['sql'],self.plan['sql'])
         self.assertEqual(first['result'],second['result'])
 
+    def test_demo_matches_the_reference_result_and_exact_source_combinations(self):
+        from tracequery.demo import create_demo, DEMO_SQL
+        from tracequery.engine import execute_plan
+        path=self.path.parent/'reference.db'
+        create_demo(path)
+        plan={'tables':[('ogrenciler','o'),('kayitlar','k'),('dersler','d')],
+              'joins':['o.id = k.ogrenci_id','d.id = k.ders_id'],
+              'projections':['o.ad','d.ad AS ders','k.notu'],
+              'where':'k.notu >= 60','sql':DEMO_SQL}
+        result=execute_plan(path,plan)
+        actual={(tuple(row['values']),row['sources']['o'],row['sources']['k'],row['sources']['d'])
+                for row in result['result']['rows']}
+        self.assertEqual(actual,{(('Ali','Matematik',80),1,101,10),
+                                 (('Ali','Fizik',75),1,102,20)})
+        self.assertEqual([stage['count'] for stage in result['stages']],[3,4,4,2])
+        self.assertEqual({(row['sources']['k'],row['reason']) for row in result['excluded']},
+                         {(103,'FALSE'),(104,'UNKNOWN')})
+
+    def test_running_sqlite_query_is_interrupted_when_its_time_budget_expires(self):
+        from tracequery.engine import connect, QueryError
+        started=False
+        with self.assertRaisesRegex(QueryError,'süre'):
+            with connect(self.path,timeout_seconds=0.1) as db:
+                started=True
+                db.execute('WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM n WHERE x<100000000) SELECT sum(x) FROM n').fetchone()
+        self.assertTrue(started,'The deadline must interrupt running work, not only reject it beforehand.')
+
     def test_case_insensitive_sqlite_table_names(self):
         from tracequery.engine import execute_plan
         p={**self.plan,'tables':[('STUDENTS','s'),('ENROLLMENTS','e')]}

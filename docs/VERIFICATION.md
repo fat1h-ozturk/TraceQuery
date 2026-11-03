@@ -1,78 +1,64 @@
-# TraceQuery Doğrulama Kaydı
+# TraceQuery doğrulama durumu
 
-3 Kasım 2026. Kaynak: mevcut çalışma ağacı ve bu oturumdaki komut çıktıları.
+**Tarih:** 3 Kasım 2026. **Sonuç:** SQLite çekirdeği doğrulandı; uygulamanın uçtan uca tamamlandığı henüz kanıtlanmadı.
 
-## Çalıştırılanlar
+## Güncel koşular
 
-- `PYTHONPATH=backend python -m unittest discover -s backend/tests -p test_core.py -v`: 16 test başarılı.
-- Yerelde sağlam bulunan pytest paketiyle aynı suite: 16 başarılı, 2 modül atlandı.
-- `python -m compileall -q backend`: başarılı.
-- `git diff --check`: başarılı.
+| Kontrol | Sonuç |
+|---|---|
+| Gerçek SQLite çekirdek unittest suite | 25 başarılı |
+| Gerçek SQLite ile asenkron bağlantı-kopması suite | 2 başarılı |
+| Yerelde mevcut sağlam pytest ile tüm test keşfi | 27 başarılı, 2 modül atlandı |
+| Python compileall | Başarılı |
+| git diff --check | Başarılı |
+| scripts/verify.sh | Başarısız: FastAPI kurulu değil |
+| npm run build | Başarısız: tsc kurulu değil |
+| Playwright | 4 senaryo hazır; çalıştırılmadı |
 
-## Henüz doğrulanmayanlar
+Atlananlar iki test vakası değil, SQLGlot ve FastAPI gerektiren iki test modülüdür. Dolayısıyla 27 başarılı test, parser veya HTTP katmanı hakkında başarı kanıtı sayılmaz. TypeScript/Vite derlemesi ve React ekranları da doğrulanmadı.
 
-- SQLGlot ayrıştırıcısı: paket kurulu değil; ilgili test modülü atlandı.
-- FastAPI uçları ve dosya yükleme: bağımlılıklar yok; ilgili modül atlandı.
-- TypeScript kontrolü ve Vite derlemesi: npm paketleri indirilemiyor.
-- Playwright tarayıcı testleri: hazırlandı, çalıştırılmadı.
+Standart kütüphane kontrolleri:
 
-PyPI kurulumu paket bulamama/ağ erişimi hatasıyla, npm kurulumu `EAI_AGAIN registry.npmjs.org` ile başarısız oldu. Projedeki doğrulama gereksinimleri azaltılmadı: `scripts/verify.sh` bütün katmanları koşmak üzere hazırlandı.
+```bash
+PYTHONPATH=backend python -m unittest discover -s backend/tests -p test_core.py -v
+PYTHONPATH=backend python -m unittest discover -s backend/tests -p test_execution.py -v
+python -m compileall -q backend
+```
 
-## Kullanım senaryosu ile eşleme
+## Kabul ölçütleri denetimi
 
-| Alan | Mevcut kanıt | Açık iş |
+Test adları `backend/tests/test_core.py` içinde; iptal orkestrasyonu `backend/tests/test_execution.py` içinde bulunur. “Çekirdek kanıtı” API/parser/arayüzün aynı davranışı gösterdiği anlamına gelmez.
+
+| Ölçüt | Mevcut doğrudan kanıt | Kalan doğrulama |
 |---|---|---|
-| SQLite salt okunur erişim, dosya oluşturmama | Gerçek SQLite çekirdek testleri | HTTP yükleme testi |
-| Şema, PK/FK ve sayfalama | Gerçek SQLite çekirdek testleri | Tarayıcı görünümü |
-| SQL kapsam doğrulaması | Statik kod ve test tanımları | SQLGlot ile gerçek koşu |
-| JOIN/WHERE kaynak bağlantıları | Tekrarlı satır, alias ve NULL testleri | AST'den uçtan uca doğrulama |
-| Gerçek kaynak hücrelerinin gösterimi | API çıktı modelinin çekirdek testleri | React render testi |
-| AND koşulları ve operand değerleri | FALSE/UNKNOWN ve değer testleri | Parser + UI uçtan uca |
-| Elenmenin ilk aşaması ve kısmi JOIN kaybı | Ali/Ayşe/Mehmet ve çoklu JOIN dal testi | API/tarayıcı doğrulaması |
-| BLOB, generated sütun ve büyük kimlik sınırı | Çekirdek regresyon testleri | HTTP JSON testi |
-| Kaynak sınırında açıklamayı durdurma | Satır sınırı testi | Süre ve istemci iptal akışı |
-| Kullanıcı araştırması | Yok | Ürün doğrulandıktan sonra pilot |
+| AC-01 Salt okunur veri | Kaynak dosyanın açıklama ve önceden iptal sonrası byte karşılaştırması | HTTP yüklenen kopyanın akışı |
+| AC-02 Olmayan dosya yaratılmaz | `test_missing_file_does_not_get_created` | Çekirdek davranış kanıtlandı |
+| AC-03 Kapsam dışı SQL reddi | AST izin listesi ve parser testleri yazılı | SQLGlot ile koşu eksik |
+| AC-04 Örnek sonuç | `test_demo_matches_the_reference_result_and_exact_source_combinations`: Ali/Matematik/80 ve Ali/Fizik/75 | SQL metninden parser + API uçtan uca |
+| AC-05 JOIN/WHERE ayrımı | Aynı örnekte 3/4/4/2 aşama sayıları; Mehmet JOIN, Ayşe WHERE | Ekranda gerçek akış |
+| AC-06 Doğru kaynak izi | Sonuç kaynakları 1/101/10 ve 1/102/20; kaynak kartı gerçek değerleri | HTTP ve tarayıcı |
+| AC-07 Aynı değerli satırlar | Ayrı kaynak kimlikli iki Ali; 80/75 filtre operandları korunur | Tarayıcı satır seçimi |
+| AC-08 NULL ayrımı | Notu NULL kaydında UNKNOWN, 45 kaydında FALSE | Parser ve arayüz |
+| AC-09 Sonraki JOIN kaybı | `test_later_join_keeps_a_surviving_branch_and_explains_the_lost_one`: 102 kaydı JOIN 2'de kaybolur | API/tarayıcı |
+| AC-10 Kısmi katılım | Aynı testte Ali'nin bir sonucu kalır; kayıp dal ayrı saklanır | Tarayıcı yolculuk görünümü |
+| AC-11 Boş sonuç | Parser/API/browser testleri yazılı | Bu katmanlar çalıştırılmadı |
+| AC-12 Kimlik uydurulmaz | Nullable/tekrarlı veya JS güvenli aralığı dışı anahtar reddi; generated sütun testi | Eksik anahtar parser/API testi ve UI uyarısı |
+| AC-13 İptal/sınır başarısızlığı | Kaynak/ara satır sınırı, önceden iptal, çalışan SQLite iptali, çalışan sorguda süre sınırı, gerçek worker temizliği | Tarayıcıdan HTTP kopmasıyla bütün hat |
+| AC-14 Mantıksal açıklama | Motor uyarısı ve UI metni mevcut | Gerçek ekran kontrolü |
 
-İsteğe bağlı karşılaştırma/dışa aktarma ve sonraki doğal dil modülü henüz uygulanmadı. Bu kayıt bitiş veya üretime hazır olma iddiası değildir.
+## Ek çekirdek kanıtları
 
-Bağımsız ikinci inceleme, kaynak kayıt/filtre payloadları ve frontend tiplerini kontrol etti; çekirdek 16 test ayrıca tekrar geçti. Sayfalama offset taşması regresyonla düzeltildi; SELECT takma adının WHERE/ON içinde kullanılması destek sınırı olarak belgelendi. Tarayıcı testlerinin çalıştırılmadığı sınırı değişmedi.
+- Her başarılı açıklama farklı oturum kimliği, `status: complete` ve kullanılan SQL'i taşır. Aynı sorgunun kaynak sonuçları değişmez.
+- AND koşullarının operandları ve ayrı TRUE/FALSE/UNKNOWN değerleri SQLite tarafından hesaplanır; Python SQL karşılaştırma semantiğini taklit etmez.
+- Sonuç ve WHERE aşamasında geçen satırın filtre değerleri gösterim için taşınır. Önceki aşamalara sonraki filtre sonucu eklenmez.
+- Self-JOIN rolleri ayrı tutulur; 10 alias için aşama sayımları ve katkılar kontrol edilir.
+- BLOB JSON için hex'e, JS aralığı dışı normal hücre tamsayıları metne çevrilir; kaynak kimlikleri için aynı değerler açıklamayı reddettirir.
+- Asenkron test ortamında çıplak `asyncio.to_thread` ile de kapanış beklemesi yeniden üretildi. Yalnız test temizliğinde küçük bir loop zamanlayıcısı kullanılır; gerçek SQLite çalışması taklit edilmez.
 
-## Sorgu iptal çekirdeği
+## Engel ve izleyen adım
 
-- `threading.Event` ile önceden iptal edilmiş sorgu reddi ve SQLite progress handler üzerinden çalışan sorgunun kesilmesi eklendi.
-- Süre bütçesi dolduğunda kısmi başarı yerine anlaşılır hata veriliyor.
-- Üç yeni gerçek SQLite testiyle toplam 19 çekirdek testi geçti. HTTP kopması ve arayüz iptal düğmesi bu adımda henüz bağlı değil.
+PyPI ve npm alan adları bu çalışma ortamında çözülemiyor: `Could not resolve host: pypi.org` ve `Could not resolve host: registry.npmjs.org`. Paket kurulumu yapılamadığı için SQLGlot/FastAPI/httpx ve frontend araçlarıyla tam doğrulama mümkün değil. Başarı iddiası uğruna gereksinimler veya doğrulama komutu azaltılmadı.
 
-## HTTP iptal orkestrasyonu ve arayüz bağlantısı
+Ağ erişimi sağlandığında README kurulumunu tamamlayın; ardından `./scripts/verify.sh` ile atlama olmadan backend testleri, TypeScript/Vite derlemesi ve gerçek API kullanan dört Playwright senaryosunu çalıştırın. Test/derleme çıktısına göre düzeltmeler ve gerçek dosya yükleme/iptal denemesi gerekir. Tamamlanma ancak bu kanıtlarla değerlendirilebilir.
 
-- ASGI bağlantı kopması callback'i bounded SQLite worker'ına iptal iletir; bağlantı kapanmadan worker sonlandırılır.
-- React iptal düğmesi AbortController kullanır; önceki başarılı açıklama korunur.
-- Orkestrasyonda bağlı istemci sonucu ve kopan istemcide gerçek SQLite kesilmesi için iki ek test geçti. Toplam 22 test başarılı, bağımlılıklar eksik olduğu için 2 modül atlandı.
-- Sandbox'ta çıplak `asyncio.to_thread` örneğinde de Python runner kapanışının beklediği yeniden üretildi. Yalnız asenkron testlerin temizliğinde küçük bir event-loop zamanlayıcısı kullanıldı; ürün koduna bu ortam için sahte çalışma yolu eklenmedi.
-- Tam HTTP/browser iptal hattı, paket kurulumu engeli nedeniyle hâlâ doğrulanmadı.
-
-## Python sayım bütçesi ve çoklu JOIN
-
-- Tek süre bütçesi SQLite işlemlerini ve Python kaynak/aşama sayımlarını kapsıyor. Kaynak katkıları tekrar tarama yerine aşama başına sayaçlarla hesaplanıyor.
-- 1.000 kaynak satırı / 10 alias yerel denemesi 0,183 saniyede tamamlandı; 1.000 sonuç ve 10.000 kaynak katkısı doğrulandı. Bu tek örnek genel performans garantisi değildir.
-- Bağımsız inceleme aynı örneği 0,176 saniyede tamamladı; 10 ms sonra gönderilen iptal sinyalinin açıklamayı durdurduğunu da doğruladı.
-- Son koşu: 20 çekirdek + 2 asenkron orkestrasyon testi başarılı; SQLGlot ve FastAPI modülleri bağımlılık yokluğu nedeniyle atlandı. Python compileall ve git diff --check başarılı.
-
-## Geçen satırın filtre açıklaması
-
-- UC-06 için nihai sonuçta ve WHERE aşamasında, seçilen kaynak birleşiminin koşul sonuçları ve operand değerleri taşınıyor. Önceki aşamalara gelecekteki filtre sonucu eklenmiyor.
-- Aynı görünen iki Ali satırının ayrı kaynak notlarını (80 ve 75) koruyan test önce `KeyError: checks` ile başarısız oldu; uygulamadan sonra geçti.
-- Son pytest koşusu: 23 başarılı, bağımlılık eksikliğiyle 2 modül atlandı. API ve Playwright kontrollerine yeni alanlar için beklentiler eklendi; bu iki katman henüz çalıştırılmadı.
-
-## Sonraki JOIN'de kısmi dal kaybı
-
-- UC-07/AC-09/AC-10 için, bir önceki aşama birleşiminin sonraki JOIN'de hiç uzantısı kalmaması ayrı `join_excluded` kaydı üretir. Kaynak kimlikleri, aşama ve ON koşulu korunur.
-- Gerçek SQLite örneğinde Ali'nin 101 numaralı kaydı sonuçta kalırken 102 numaralı kaydı eksik ders eşleşmesi nedeniyle JOIN 2'de elendi. Ali'nin katkısı 1, aşama sayıları 1/2/1/1; tamamen elendiği söylenmiyor. Mehmet için JOIN 1 kaybı da ayrı tutuldu. Test önce eksik alan nedeniyle başarısız oldu, uygulama sonrası geçti.
-- Son koşu: 22 çekirdek + 2 orkestrasyon testi başarılı, 2 modül bağımlılık yokluğuyla atlandı. Python compileall ve diff kontrolü başarılı. UI/HTTP beklentileri güncellendi; çalıştırılmış sayılmıyor.
-- Paket ağını yeniden kontrol: PyPI ve npm alan adları çözülemiyor; tam entegrasyon engeli sürüyor.
-
-## Açıklama oturumu ve SQL bağlamı
-
-- UC-03 için başarılı açıklama `id`, `status: complete` ve kullanılan SQL'i taşır. Her gerçek koşu farklı kimlik üretir; aynı sorgunun kaynak sonuçları değişmez.
-- Oturum testi önce eksik `status` alanıyla başarısız oldu, uygulama sonrası geçti. Son koşu: 23 çekirdek + 2 orkestrasyon testi başarılı; 2 bağımlılık modülü atlandı.
-- Arayüzde mevcut açıklamanın SQL'i ayrı açılabilir bölümde gösterilir. Düzenleyici değişikliğiyle eski sonuçların sorgusu karışmaz. Bu davranış için Playwright testi hazırlandı; paket engeli nedeniyle koşulmadı.
+Kullanıcı araştırması yapılmadı. UC-08 karşılaştırma ve UC-09 dışa aktarma, belgeye göre isteğe bağlıdır ve çekirdek doğrulanmadan eklenmedi. Doğal dil desteği sonraki aşamadır.

@@ -72,3 +72,8 @@ Files: README.md, .gitignore, scripts/dev.sh.
 ### Açıklama kimliği ve kullanılan SQL
 - UC-03 başarılı oturuma benzersiz kimlik ve tamamlanma durumu eklendi; UI son başarılı sorguyu ayrıca gösterir. Test RED→GREEN. 25 test başarılı, 2 bağımlılık modülü skip.
 - Düzenlenmiş SQL ile eski sonucun karıştırılmaması için gerçek API kullanan ek browser senaryosu hazırlandı; henüz çalıştırılmadı.
+
+### Güncel kabul denetimi
+- Tam demo kaynak birleşimleri ve çalışan SQLite sorgusunun süre aşımı için iki ek doğrudan test geçti. Toplam 25 çekirdek + 2 orkestrasyon testi başarılı, parser/API modülleri 2 skip.
+- `scripts/verify.sh` FastAPI eksikliğinde, `npm run build` tsc eksikliğinde duruyor. İki paket sunucusunun DNS çözümlemesi başarısız.
+- AC-01..AC-14 için eldeki doğrudan kanıt ve kalan entegrasyon doğrulaması docs/VERIFICATION.md içinde güncellendi. Proje tamamlandı sayılmadı; ek kapsam yerine paket/ağ engelinin kalkması ve tam doğrulama gerekiyor.

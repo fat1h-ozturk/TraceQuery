@@ -38,7 +38,7 @@ Files: README.md, .gitignore, scripts/start.sh, scripts/verify.sh.
 ## Güncel sonuç (3 Kasım 2026)
 - İlk yerel sürümün bütün plan görevleri doğrulandı. `./scripts/verify.sh`: 58 backend testi + üretim derlemesi + 8 gerçek Chromium senaryosu başarılı, çıkış kodu 0.
 - `scripts/start.sh` ile açılan canlı sunucuda ana HTML, iki asset ve demo/explain akışı HTTP üzerinden kontrol edildi.
-- Kod mevcut `feat/tracequery-start` dalında commitlenir. Kullanıcının gereksiz onay istememe talebi doğrultusunda ek merge/PR kararı istenmez ve dal yerinde tutulur.
+- Kod kullanıcının sonraki birleştirme talebiyle `main` dalına fast-forward alındı. Birleşme sonrası tam doğrulama başarılı; geliştirme dalı korunur.
 - Aşağıdaki kayıtlar gelişimin tarihçesidir; eski ağ/izin engelleri güncel engel değildir. Güncel kabul kanıtları docs/VERIFICATION.md içindedir.
 
 ## Uygulama kaydı

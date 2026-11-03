@@ -56,7 +56,7 @@ Demo FALSE/UNKNOWN ve kısmi JOIN ekran görüntüleri görsel olarak incelendi;
 - Yüklenen dosyaya öğrenci sorgusu önerme hatası giderildi; dosyanın kendi PK'li tablosu seçilir. Uygun tablo yoksa geçersiz örnek sunulmaz.
 - Slash/nokta/soru işareti içeren tablo adlarının gezintisi query parametresiyle düzeltilip dört gerçek HTTP testiyle doğrulandı. Eski URI yolu da korunur.
 - İki Chromium seçici hatası, gerçek başarısız koşu ardından hedefi daraltılarak düzeltildi: 60 etiketinden hücre değeri ayrılır; tablo düğmesi sol gezintiyle sınırlandırılır.
-- README geliştirme komutu açık Uvicorn komutuyla güncellendi. Çalışma mevcut geliştirme dalında tutulur; merge/push yapılmadı.
+- README geliştirme komutu açık Uvicorn komutuyla güncellendi. Kullanıcının isteğiyle geliştirme dalı main ile fast-forward birleştirildi; main üzerinde 58 backend testi, 8 Chromium senaryosu ve üretim derlemesi tekrar geçti.
 
 ## Sınırlar
 

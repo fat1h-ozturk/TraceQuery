@@ -67,3 +67,8 @@ def test_empty_result_is_success(database):
 def test_requires_real_primary_key(database):
     with sqlite3.connect(database) as db: db.execute('CREATE TABLE other(value TEXT)')
     with pytest.raises(QueryError,match='PRIMARY KEY'): explain(database,'SELECT value FROM other')
+
+
+def test_unterminated_string_is_a_user_query_error(database):
+    with pytest.raises(QueryError):
+        explain(database,"SELECT ad FROM ogrenciler WHERE ad = 'Ali")

@@ -121,6 +121,18 @@ class CoreTests(unittest.TestCase):
             with connect(self.path,timeout_seconds=0) as db:
                 db.execute('SELECT 1')
 
+    def test_many_alias_source_counts_remain_exact(self):
+        from tracequery.engine import execute_plan
+        roles=[('students',f's{i}') for i in range(10)]
+        p={'tables':roles,'joins':[f'"s0"."id"="s{i}"."id"' for i in range(1,10)],
+           'projections':['"s0"."name"'],'where':None,'sql':'demo'}
+        result=execute_plan(self.path,p)
+        self.assertEqual(result['result']['count'],3)
+        for outcome in result['outcomes']:
+            alias_index=int(outcome['alias'][1:])
+            self.assertEqual(outcome['counts'],[None]*alias_index+[1]*(10-alias_index))
+            self.assertEqual(outcome['contributions'],1)
+
     def test_missing_file_does_not_get_created(self):
         from tracequery.engine import inspect_database, QueryError
         missing=self.path.parent/'missing.db'

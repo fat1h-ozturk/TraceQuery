@@ -59,7 +59,7 @@ Bu yerel uygulamayı genel internete açmayın: kimlik doğrulama, çok kullanı
 
 ## Bu ortamda yapılan kontroller
 
-İlk geliştirme sırasında dış paket indirme ağı erişilemedi. Standart kütüphane çekirdek testlerinin **16'sı geçti**; mevcut yerel pytest ile de **16 geçti, 2 modül atlandı** (SQLGlot ve FastAPI eksik). Python sözdizimi kontrolü başarılı. API/parser entegrasyonu, TypeScript derlemesi ve gerçek tarayıcı akışı **henüz doğrulanmadı**. Bu sınır, uygulamanın uçtan uca çalıştığı iddiasında bulunulmadığı anlamına gelir.
+İlk geliştirme sırasında dış paket indirme ağı erişilemedi. Standart kütüphane çekirdek testlerinin **22'si geçti**; mevcut yerel pytest ile de **22 geçti, 2 modül atlandı** (SQLGlot ve FastAPI eksik). Python sözdizimi kontrolü başarılı. API/parser entegrasyonu, TypeScript derlemesi ve gerçek tarayıcı akışı **henüz doğrulanmadı**. Bu sınır, uygulamanın uçtan uca çalıştığı iddiasında bulunulmadığı anlamına gelir.
 
 ## Tarayıcı doğrulaması
 
@@ -77,3 +77,5 @@ Playwright ayrı backend ve Vite sunucuları başlatır; 8000/5173 portları bo�
 Kaynak kartları gerçek sütun değerlerini, filtre açıklamaları karşılaştırılan değerleri gösterir. Anahtarın generated sütunların yanında bulunması da çekirdek regresyon testiyle kontrol edilir. Çalışma alanındaki kaynak numaraları kaynak birleşimleridir; kişi sayısı olarak yorumlanmamalıdır.
 
 WHERE ve ON içinde gerçek kaynak sütunlarını kullanın; SELECT ile tanımlanmış sütun takma adını bu koşullarda kullanmak ilk sürüm kapsamında değildir.
+
+Sorgu çalışırken **İptal et** düğmesi HTTP isteğini keser. Backend bağlantı kopmasını algılayarak iptal olayını SQLite progress handler'a iletir; önceki başarılı açıklama korunur. Çekirdek iptal ve bağlantı-kopması orkestrasyonu gerçek SQLite testleriyle doğrulandı. Tarayıcıdan backend'e bütün iptal hattı henüz çalıştırılmadı.

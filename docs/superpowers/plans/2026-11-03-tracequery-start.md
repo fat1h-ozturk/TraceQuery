@@ -51,3 +51,11 @@ Files: README.md, .gitignore, scripts/dev.sh.
 - Çekirdek testler 16'ya çıktı; hepsi geçti. İlgili yeni testler önce eksik davranışı gösterip ardından geçti.
 - Gerçek API kullanan Playwright senaryoları ve tek doğrulama komutu eklendi; npm EAI_AGAIN nedeniyle henüz koşulamadı.
 - Doğrulama kapsamı ve açık işler docs/VERIFICATION.md içinde izleniyor. Hedef tamamlandı sayılmıyor.
+
+### İptal akışı
+- `b638cc2`: SQLite iptal olayı ve süre sınırı; 19 çekirdek test başarılı.
+- İstemci bağlantısı kopunca worker'ın iptal edilmesi, React AbortController ve önceki başarılı sonucun korunması bağlandı.
+- Orkestrasyonun iki gerçek SQLite testi dahil 22 test geçti. HTTP/SQLGlot test modülleri bağımlılık engeliyle atlanıyor.
+- Kullanıcının talebi doğrultusunda anlamlı ve doğrulanmış adımlar ayrı commit'lerle kaydediliyor; dosya silinmesi bu commit'lere dahil edilmiyor.
+
+- Bağımsız incelemenin Python sayım döngülerinde süre bütçesi bulgusu ortak bütçe ve aşama sayaçlarıyla giderildi. 1.000 satır/10 alias denemesi 0,183 saniye; 22 test başarılı, 2 bağımlılık modülü skip. Son incelemede yeni önemli bulgu yok.

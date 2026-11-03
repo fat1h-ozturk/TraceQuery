@@ -1,5 +1,6 @@
 """Bounded logical explanations. SQL execution always belongs to SQLite."""
 from contextlib import contextmanager
+from collections import Counter
 from pathlib import Path
 import sqlite3
 import math
@@ -20,27 +21,36 @@ def sqlite_name(name):
 def quote(name):
     return '"' + name.replace('"', '""') + '"'
 
-@contextmanager
-def connect(path, cancel=None, timeout_seconds=5):
-    db = None
-    deadline = time.monotonic() + timeout_seconds
-    def check_budget():
-        if cancel is not None and cancel.is_set():
+class _Budget:
+    def __init__(self,cancel=None,seconds=5):
+        self.cancel=cancel
+        self.deadline=time.monotonic()+seconds
+
+    def expired(self):
+        return (self.cancel is not None and self.cancel.is_set()) or time.monotonic()>=self.deadline
+
+    def check(self):
+        if self.cancel is not None and self.cancel.is_set():
             raise QueryError('İşlem kullanıcı tarafından iptal edildi.')
-        if time.monotonic() >= deadline:
+        if time.monotonic()>=self.deadline:
             raise QueryError('Sorgu süre sınırını aştı; açıklama tamamlanmadı.')
-    check_budget()
+
+@contextmanager
+def connect(path, cancel=None, timeout_seconds=5, budget=None):
+    db=None
+    budget=budget or _Budget(cancel,timeout_seconds)
+    budget.check()
     try:
         if sqlite3.sqlite_version_info < (3,37,0):
             raise QueryError('TraceQuery için SQLite 3.37 veya daha yenisi gerekli.')
-        db = sqlite3.connect(Path(path).resolve().as_uri() + '?mode=ro', uri=True)
+        db=sqlite3.connect(Path(path).resolve().as_uri()+'?mode=ro',uri=True,timeout=1)
         db.execute('PRAGMA query_only=ON')
-        db.set_progress_handler(lambda: int((cancel is not None and cancel.is_set()) or time.monotonic() >= deadline), 1000)
+        db.set_progress_handler(lambda:int(budget.expired()),1000)
         db.execute('BEGIN')
         yield db
-        check_budget()
+        budget.check()
     except sqlite3.Error as error:
-        check_budget()
+        budget.check()
         raise QueryError(f'SQLite işlemi tamamlanamadı: {error}') from error
     finally:
         if db is not None:
@@ -88,7 +98,7 @@ def parse_query(sql):
         raise QueryError('SQLGlot kurulu değil. requirements.txt bağımlılıklarını kurun.') from error
     try:
         statements = parse(sql, read='sqlite')
-    except errors.ParseError as error:
+    except (errors.SqlglotError, RecursionError) as error:
         raise QueryError(f'SQL ayrıştırılamadı: {error}') from error
     if len(statements)!=1 or not isinstance(statements[0], exp.Select):
         raise QueryError('Yalnızca tek bir SELECT sorgusu destekleniyor.')
@@ -157,7 +167,8 @@ def explain(path, sql, max_rows=1000, cancel=None):
 
 def execute_plan(path, plan, max_rows=1000, cancel=None):
     """Internal only: plan is produced by parse_query, never accepted from the API."""
-    with connect(path,cancel=cancel) as db:
+    budget=_Budget(cancel)
+    with connect(path,budget=budget) as db:
         entries={t['name']:t for t in schema(db)}
         canonical={sqlite_name(name):name for name in entries}
         roles=[(canonical.get(sqlite_name(name),name),alias) for name,alias in plan['tables']]
@@ -168,6 +179,7 @@ def execute_plan(path, plan, max_rows=1000, cancel=None):
         source_ids = {}
         source_records = {}
         for name,a in roles:
+            budget.check()
             key=entries[name]['primary_key']
             records=db.execute(f'SELECT * FROM {quote(name)} LIMIT ?', (max_rows+1,)).fetchall()
             names=[c['name'] for c in entries[name]['columns']]
@@ -179,6 +191,7 @@ def execute_plan(path, plan, max_rows=1000, cancel=None):
             source_ids[a]=identities
             source_records[a]={identity:dict(zip(names,[display_value(v) for v in record])) for identity,record in zip(identities,records)}
         def fetch(select, source, aliases, condition=None):
+            budget.check()
             keys=[f'{quote(a)}.{quote(entries[n]["primary_key"])}' for n,a in roles if a in aliases]
             sql=f'SELECT {select}, '+', '.join(keys)+' FROM '+source
             if condition: sql+=' WHERE '+condition
@@ -230,15 +243,23 @@ def execute_plan(path, plan, max_rows=1000, cancel=None):
             stage.update(label='WHERE',detail=plan['where'],aliases=aliases.copy())
             stages.append(stage)
         result=fetch(', '.join(plan['projections']),source,aliases,plan['where'])
+        stage_counts=[]
+        for stage in stages:
+            counters={alias:Counter() for alias in stage['aliases']}
+            for row in stage['rows']:
+                budget.check()
+                for alias,identity in row['sources'].items():
+                    counters[alias][identity]+=1
+            stage_counts.append(counters)
+        result_counts={alias:Counter(row['sources'][alias] for row in result['rows']) for _,alias in roles}
         outcomes=[]
         for name,a in roles:
             for identity in source_ids[a]:
-                if cancel is not None and cancel.is_set():
-                    raise QueryError('İşlem kullanıcı tarafından iptal edildi.')
-                counts=[sum(r['sources'].get(a)==identity for r in stage['rows']) if a in stage['aliases'] else None for stage in stages]
+                budget.check()
+                counts=[counters[a][identity] if a in counters else None for counters in stage_counts]
                 outcomes.append({'table':name,'alias':a,'id':identity,'counts':counts,
                                  'record':source_records[a][identity],
                                  'first_missing_stage':next((i for i,count in enumerate(counts) if count==0),None),
-                                 'contributions':sum(r['sources'].get(a)==identity for r in result['rows'])})
+                                 'contributions':result_counts[a][identity]})
         return {'sql':plan['sql'],'stages':stages,'result':result,'excluded':excluded,'outcomes':outcomes,
                 'notice':'Aşamalar mantıksal açıklamadır; SQLite fiziksel yürütme planı değildir.'}

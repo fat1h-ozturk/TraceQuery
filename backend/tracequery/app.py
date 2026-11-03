@@ -2,13 +2,14 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 import tempfile
 import uuid
-from fastapi import FastAPI, UploadFile
+from fastapi import FastAPI, UploadFile, Request
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from .engine import QueryError, inspect_database, read_table, explain
 from .demo import create_demo, DEMO_SQL
+from .execution import run_with_disconnect
 
 @asynccontextmanager
 async def lifespan(app):
@@ -73,8 +74,12 @@ class ExplainRequest(BaseModel):
     sql:str=Field(min_length=1,max_length=20000)
 
 @app.post('/api/explain')
-def run_query(body:ExplainRequest):
-    return explain(database(body.database_id),body.sql)
+async def run_query(body:ExplainRequest,request:Request):
+    path=database(body.database_id)
+    return await run_with_disconnect(
+        lambda cancel:explain(path,body.sql,cancel=cancel),
+        request.is_disconnected,
+    )
 
 build=Path(__file__).resolve().parents[2]/'frontend'/'dist'
 if build.is_dir():

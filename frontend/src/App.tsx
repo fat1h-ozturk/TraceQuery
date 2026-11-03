@@ -23,8 +23,20 @@ export default function App(){
  const [stage,setStage]=useState(-1),[selected,setSelected]=useState(-1),[tab,setTab]=useState('sonuc');
  const [table,setTable]=useState(''),[page,setPage]=useState<Page|null>(null),[focus,setFocus]=useState<Outcome|null>(null);
  const file=useRef<HTMLInputElement>(null);
- async function action(fn:()=>Promise<void>){setError('');setBusy(true);try{await fn()}catch(e){setError(e instanceof Error?e.message:'İşlem tamamlanamadı.')}finally{setBusy(false)}}
+ const queryController=useRef<AbortController|null>(null);
+ async function action(fn:()=>Promise<void>){setError('');setBusy(true);try{await fn()}catch(e){setError(e instanceof DOMException&&e.name==='AbortError'?'İşlem iptal edildi. Önceki başarılı sonuçlar korundu.':e instanceof Error?e.message:'İşlem tamamlanamadı.')}finally{setBusy(false)}}
  function opened(next:Database){setDb(next);setSql(next.demo_sql);setAnalysis(null);setPage(null);setTable('');setSelected(-1);setFocus(null);setTab('sonuc')}
+ async function runQuery(){
+  if(!db||busy)return;
+  const controller=new AbortController();
+  queryController.current=controller;
+  try {
+   await action(async()=>{
+    const result=await api<Explanation>('/explain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({database_id:db.id,sql}),signal:controller.signal});
+    setAnalysis(result);setStage(-1);setSelected(-1);setFocus(null);setTab('sonuc');
+   });
+  } finally {queryController.current=null;}
+ }
  async function browse(name:string,offset=0){await action(async()=>{const next=await api<Page>(`/table/${db!.id}/${encodeURIComponent(name)}?offset=${offset}`);setTable(name);setPage(next);setTab('tablo')})}
  const grid=analysis?(stage<0?analysis.result:analysis.stages[stage]):null;
  const row=grid&&selected>=0?grid.rows[selected]:null;
@@ -44,7 +56,7 @@ export default function App(){
    {error&&<div className="error" role="alert"><strong>İşlem tamamlanamadı</strong><p>{error}</p></div>}
    <section className="editor panel"><div className="panel-heading"><div><span className="code-icon">⌘</span><strong>SQL sorgusu</strong><span className="muted">SQLite</span></div><button className="subtle" disabled={!db||busy} onClick={()=>setSql(db!.demo_sql)}>Örnek sorgu</button></div>
     <label className="sr-only" htmlFor="sql">SQL sorgusu</label><textarea id="sql" spellCheck={false} value={sql} onChange={e=>setSql(e.target.value)} placeholder={'SELECT ...\nFROM ...\nWHERE ...'}/>
-    <div className="editor-footer"><span>SELECT · INNER JOIN · WHERE <span className="muted">/ ilk sürüm</span></span><button className="primary" disabled={!db||busy||!sql.trim()} onClick={()=>void action(async()=>{const result=await api<Explanation>('/explain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({database_id:db!.id,sql})});setAnalysis(result);setStage(-1);setSelected(-1);setFocus(null);setTab('sonuc')})}>{busy?'İşleniyor…':'▷ Çalıştır ve açıkla'}</button></div>
+    <div className="editor-footer"><span>SELECT · INNER JOIN · WHERE <span className="muted">/ ilk sürüm</span></span>{busy&&queryController.current&&<button className="cancel-query" onClick={()=>queryController.current?.abort()}>İptal et</button>}<button className="primary" disabled={!db||busy||!sql.trim()} onClick={()=>void runQuery()}>{busy?'İşleniyor…':'▷ Çalıştır ve açıkla'}</button></div>
    </section>
    {!db&&<section className="welcome panel"><span>01 / BAŞLANGIÇ</span><h2>Bir sonuçtan daha fazlasını gör.</h2><p>Ali neden iki kez görünüyor? Ayşe hangi koşulda elendi?<br/>Örnek veritabanını açarak kayıtların yolculuğuna başla.</p><button className="primary" disabled={busy} onClick={()=>void action(async()=>opened(await api<Database>('/demo',{method:'POST'})))}>Örnek veritabanıyla başla ↗</button></section>}
    {db&&<div className="tabs"><button className={tab==='sonuc'?'current':''} onClick={()=>setTab('sonuc')}>Sorgu inceleme {analysis&&<span>{analysis.result.count}</span>}</button><button className={tab==='tablo'?'current':''} onClick={()=>{if(table)setTab('tablo');else if(db.tables[0])void browse(db.tables[0].name)}}>Kaynak tablolar</button></div>}

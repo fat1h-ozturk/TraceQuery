@@ -42,3 +42,18 @@ Bağımsız ikinci inceleme, kaynak kayıt/filtre payloadları ve frontend tiple
 - `threading.Event` ile önceden iptal edilmiş sorgu reddi ve SQLite progress handler üzerinden çalışan sorgunun kesilmesi eklendi.
 - Süre bütçesi dolduğunda kısmi başarı yerine anlaşılır hata veriliyor.
 - Üç yeni gerçek SQLite testiyle toplam 19 çekirdek testi geçti. HTTP kopması ve arayüz iptal düğmesi bu adımda henüz bağlı değil.
+
+## HTTP iptal orkestrasyonu ve arayüz bağlantısı
+
+- ASGI bağlantı kopması callback'i bounded SQLite worker'ına iptal iletir; bağlantı kapanmadan worker sonlandırılır.
+- React iptal düğmesi AbortController kullanır; önceki başarılı açıklama korunur.
+- Orkestrasyonda bağlı istemci sonucu ve kopan istemcide gerçek SQLite kesilmesi için iki ek test geçti. Toplam 22 test başarılı, bağımlılıklar eksik olduğu için 2 modül atlandı.
+- Sandbox'ta çıplak `asyncio.to_thread` örneğinde de Python runner kapanışının beklediği yeniden üretildi. Yalnız asenkron testlerin temizliğinde küçük bir event-loop zamanlayıcısı kullanıldı; ürün koduna bu ortam için sahte çalışma yolu eklenmedi.
+- Tam HTTP/browser iptal hattı, paket kurulumu engeli nedeniyle hâlâ doğrulanmadı.
+
+## Python sayım bütçesi ve çoklu JOIN
+
+- Tek süre bütçesi SQLite işlemlerini ve Python kaynak/aşama sayımlarını kapsıyor. Kaynak katkıları tekrar tarama yerine aşama başına sayaçlarla hesaplanıyor.
+- 1.000 kaynak satırı / 10 alias yerel denemesi 0,183 saniyede tamamlandı; 1.000 sonuç ve 10.000 kaynak katkısı doğrulandı. Bu tek örnek genel performans garantisi değildir.
+- Bağımsız inceleme aynı örneği 0,176 saniyede tamamladı; 10 ms sonra gönderilen iptal sinyalinin açıklamayı durdurduğunu da doğruladı.
+- Son koşu: 20 çekirdek + 2 asenkron orkestrasyon testi başarılı; SQLGlot ve FastAPI modülleri bağımlılık yokluğu nedeniyle atlandı. Python compileall ve git diff --check başarılı.

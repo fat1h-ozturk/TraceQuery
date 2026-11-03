@@ -10,11 +10,12 @@ Gereksinimler: Python 3.11+ (SQLite 3.37+), Node.js 22.12+ ve npm. İlk kurulum 
 python -m venv .venv
 .venv/bin/pip install -r requirements.txt
 cd frontend
-npm install
-npm run build
+npm ci
 cd ..
-.venv/bin/python -m uvicorn tracequery.app:app --app-dir backend --host 127.0.0.1 --port 8000
+./scripts/start.sh
 ```
+
+`start.sh` arayüzü derleyip yerel sunucuyu açar; kapatmak için Ctrl+C kullanın. Sonraki başlatmalar için yalnız `./scripts/start.sh` yeterlidir.
 
 Tarayıcıda **http://127.0.0.1:8000** açılır. “Örnek veritabanıyla başla” → “Çalıştır ve açıkla” → bir sonuç satırının numarası → kaynaklar. Kayıtların yolculuğundan JOIN'de kaybolan Mehmet ve WHERE'de elenen Ayşe incelenebilir. NULL filtre sonucu UNKNOWN olarak ayrılır.
 
@@ -59,7 +60,9 @@ Bu yerel uygulamayı genel internete açmayın: kimlik doğrulama, çok kullanı
 
 ## Bu ortamda yapılan kontroller
 
-İlk geliştirme sırasında dış paket indirme ağı erişilemedi. Standart kütüphane çekirdek testlerinin **30'u geçti**; mevcut yerel pytest ile de **30 geçti, 2 modül atlandı** (SQLGlot ve FastAPI eksik). Python sözdizimi kontrolü başarılı. API/parser entegrasyonu, TypeScript derlemesi ve gerçek tarayıcı akışı **henüz doğrulanmadı**. Bu sınır, uygulamanın uçtan uca çalıştığı iddiasında bulunulmadığı anlamına gelir.
+Kurulum sonrası **54 backend testi atlama olmadan geçti**: SQLite motoru, gerçek SQLGlot ayrıştırıcısı ve FastAPI TestClient akışı. TypeScript kontrolü ve Vite üretim derlemesi başarılı. Gerçek dosya yükleme, salt okunur kopya, geçersiz/büyük dosya reddi ve geçici dosyaların temizliği HTTP testlerinde kontrol edildi.
+
+Bu ajan oturumunda yerel TCP soketi açılması engelleniyor; tarayıcı testlerinin beş senaryosu henüz çalıştırılmadı. Gerçek ekran ve Chromium akışı doğrulanmadan uçtan uca tamamlanma iddiasında bulunulmuyor. Güncel kanıtlar [docs/VERIFICATION.md](docs/VERIFICATION.md) içinde.
 
 ## Tarayıcı doğrulaması
 
@@ -72,7 +75,7 @@ cd ..
 ./scripts/verify.sh
 ```
 
-Playwright ayrı backend ve Vite sunucuları başlatır; 8000/5173 portları boş olmalı. Testler gerçek API üzerinden demo, kaynak hücreleri, JOIN'de elenme, FALSE/UNKNOWN ayrımı, yazma reddi ve şema ilişkilerini inceler. Bu test dosyalarının hazırlanmış olması çalıştırıldıkları anlamına gelmez.
+Playwright üretim derlemesini sunan backend sunucusunu başlatır; 8000 portu boş olmalı. Önceden `start.sh` ile açılan sunucuyu Ctrl+C ile kapatın. Testler gerçek API üzerinden demo, kaynak hücreleri, JOIN'de elenme, FALSE/UNKNOWN ayrımı, yazma reddi ve şema ilişkilerini inceler. Gerçek SQLite yükleme senaryosu ve düzenlenmiş SQL ile önceki sonucun ayrımı da sınanır. Doğrulama çıktısı `.artifacts/verification/latest.log` dosyasına kaydedilir. Ekran görüntüleri ve başarısız koşu izleri `frontend/test-results/` altında oluşur. Test dosyalarının hazırlanmış olması çalıştırıldıkları anlamına gelmez.
 
 Kaynak kartları gerçek sütun değerlerini, filtre açıklamaları karşılaştırılan değerleri gösterir. Anahtarın generated sütunların yanında bulunması da çekirdek regresyon testiyle kontrol edilir. Çalışma alanındaki kaynak numaraları kaynak birleşimleridir; kişi sayısı olarak yorumlanmamalıdır.
 
@@ -85,3 +88,5 @@ Sonuç veya WHERE aşamasından seçilen satırda filtre koşulları ve karşıl
 Bir kaydın dalları farklı sonuçlanabilir: örneğin Ali'nin bir ders kaydı sonuçta kalırken diğerinin ders eşleşmesi bulunamayabilir. Kayıt yolculuğu, eşleşmeyen birleşimi kaybolduğu JOIN ve ON koşuluyla ayrı gösterir; Ali'nin kalan katkısı korunur.
 
 Her tamamlanan açıklama benzersiz bir oturum kimliği ve kullanılan SQL'i taşır. Düzenleyicideki metin sonradan değiştirilse bile “Son çalıştırılan sorgu” bölümünde mevcut sonuçları üreten SQL görüntülenir. Yeni koşu başarısız olursa önceki başarılı açıklama korunur.
+
+Dosya yüklenince örnek sorgu, dosyadaki açıklanabilir bir tablodan otomatik seçilir; tablo adındaki boşluklar güvenle alıntılanır. Uygun INTEGER PRIMARY KEY yoksa dosya görüntülenebilir; açıklama sınırlaması gösterilir ve geçersiz örnek sorgu önerilmez.

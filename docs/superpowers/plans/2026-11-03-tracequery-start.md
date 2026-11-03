@@ -79,3 +79,13 @@ Files: README.md, .gitignore, scripts/dev.sh.
 - AC-01..AC-14 için eldeki doğrudan kanıt ve kalan entegrasyon doğrulaması docs/VERIFICATION.md içinde güncellendi. Proje tamamlandı sayılmadı; ek kapsam yerine paket/ağ engelinin kalkması ve tam doğrulama gerekiyor.
 
 - Kabul denetiminde kalan doğrudan çekirdek sınamaları eklendi: tamamlanan boş sonuçta kayıt izleri, anahtarsız tablonun okunup açıklanmasının reddi ve kaynaklar sığarken JOIN ara sonucunun sınırı aşması. Son koşu 28 çekirdek + 2 orkestrasyon = 30 başarılı, 2 bağımlılık modülü skip.
+
+### Çalışabilir ürün devamı
+- Kullanıcı terminalindeki kurulumla bağımlılıklar geldi: 54 backend testi atlama olmadan geçti; TypeScript/Vite build başarılı.
+- Yüklenen her dosyaya öğrenci sorgusu verilmesi gerçek başarısız testle üretildi. Dosyanın kendi PK'li tablosu güvenli alıntıyla seçilir; uygun tablo yoksa geçersiz örnek verilmez. HTTP yükleme, orijinal/kopya byte kontrolü, kapanış temizliği ve 10 MB sınırı doğrulandı.
+- TestClient'ın ortamda kaybolan thread uyanması küçük gerçek Starlette örneğinde doğrulandı; test loop'una zamanlayıcı eklemek gerçek HTTP/SQLite testlerinin geçmesini sağladı. Ürün yolu değiştirilmedi, test atlanmadı.
+- Ruling: Planın dev.sh dosyası yerine scripts/start.sh ile tek portlu derleme+başlatma sunuldu — ilk yerel kullanımda iki terminal gereksinimini kaldırır; kaynak frontend değişikliklerinde yeniden başlatma gerekir, hot reload için README'deki Vite geliştirme yolu sürer.
+- Playwright'a gerçek dosya yükleme ve orijinal dosya byte kontrolü eklendi, toplam 5 senaryo hazır. Ekran görüntüleri ve kalıcı doğrulama logu üretilir. Gerçek browser koşusu bekliyor.
+- Yerel TCP ve Computer Use erişimi bu ortamda kısıtlı; kullanıcı normal terminalinde verify.sh/start.sh çalıştırabilir.
+
+- Doğrulama komutu 54 backend testi ve build aşamasını geçti; gerçek browser sunucusunun TCP bind engelini loga kaydedip başarısız döndü. Playwright yapılandırması kullanıcıdaki start.sh ile aynı üretim derlemesini tek porttan test eder; Vite geliştirme sunucusuna ihtiyaç yok.
